@@ -19,15 +19,19 @@ class GetVersesCommand extends \Tops\services\TServiceCommand
         if (!$request) {
             $this->addErrorMessage("No request received");
         }
-        $verses = $manager->getVerses($request);
+        $file = @$request->Value;
+        if (!$file) {
+            $this->addErrorMessage("No song request.");
+            return;
+        }
+        $verses = $manager->getVerses($file);
         if ($verses === null) {
-            $this->addErrorMessage("No song file, $request, found.");
+            $this->addErrorMessage("No song file, $file, found.");
             return;
         }
         $response = new \stdClass();
         $response->verses = $verses;
-        $title = $manager->toTitle($request);
-        // $this->addInfoMessage($title);
+        $response->title = $request->Name;
         $this->setReturnValue($response);
     }
 }

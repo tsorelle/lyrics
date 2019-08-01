@@ -17,14 +17,30 @@ var Peanut;
         __extends(HomeViewModel, _super);
         function HomeViewModel() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.executingService = ko.observable(false);
+            _this.page = ko.observable('lyrics');
             _this.verses = ko.observableArray();
-            _this.set = ko.observable('Default');
+            _this.verses2 = ko.observableArray();
+            _this.set = ko.observable('');
             _this.sets = ko.observableArray();
-            _this.songs = ko.observableArray();
+            _this.songList = [];
+            _this.songs = [];
             _this.allsongs = ko.observableArray();
             _this.textSize = ko.observable(2);
+            _this.splitVerses = ko.observable(false);
+            _this.selectedSong = ko.observable('');
             _this.title = ko.observable('');
+            _this.songIndex = 0;
+            _this.songCount = 0;
+            _this.loadSet = function (response) {
+                _this.loadSongList(response.songs);
+                _this.songIndex = 0;
+                _this.songCount = response.songs.length;
+                _this.set(response.set);
+            };
+            _this.setSongIndex = function (value) {
+                _this.songIndex = value;
+                _this.selectedSong(_this.songList[_this.songIndex].Value);
+            };
             _this.reduceFont = function () {
                 if (_this.textSize() > 1) {
                     _this.zoom(-0.5);
@@ -36,26 +52,120 @@ var Peanut;
             _this.zoom = function (increment) {
                 _this.textSize(_this.textSize() + increment);
             };
+            _this.nextSong = function () {
+                var songIndex = _this.songIndex == _this.songCount - 1 ? 0 : ++_this.songIndex;
+                _this.getLyrics(songIndex);
+            };
+            _this.prevSong = function () {
+                var songIndex = _this.songIndex == 0 ? _this.songCount - 1 : --_this.songIndex;
+                _this.getLyrics(songIndex);
+            };
+            _this.getLyrics = function (songIndex) {
+                var me = _this;
+                var current = _this.songList[songIndex];
+                me.page('loading');
+                var request = null;
+                me.services.executeService('GetVerses', current, function (serviceResponse) {
+                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                        var response = serviceResponse.Value;
+                        me.verses(response.verses);
+                        me.splitVerses(false);
+                        me.verses2([]);
+                        me.title(response.title);
+                        me.setSongIndex(songIndex);
+                    }
+                })
+                    .fail(function () {
+                    var trace = me.services.getErrorInformation();
+                })
+                    .always(function () {
+                    me.page('lyrics');
+                });
+            };
+            _this.loadSongList = function (songs) {
+                _this.songList = songs;
+                var colCount = songs.length % 4;
+                var maxItems = 10;
+                var index = 0;
+                var colIndex = 0;
+                for (var i = 0; i < 4; i++) {
+                    _this.songs[i]([]);
+                }
+                var column = [];
+                var columnIndex = 0;
+                for (var i = 0; i < songs.length; i++) {
+                    column.push(songs[i]);
+                    if (column.length >= maxItems && columnIndex < 3) {
+                        _this.songs[columnIndex](column);
+                        columnIndex++;
+                        column = [];
+                    }
+                }
+                _this.songs[columnIndex](column);
+                _this.setSongIndex(0);
+            };
+            _this.showSongList = function () {
+                _this.page('songs');
+            };
+            _this.splitColumns = function () {
+                var split = !_this.splitVerses();
+                var colB = [];
+                _this.verses2([]);
+                if (split) {
+                    var colA = [];
+                    var verses = _this.verses();
+                    var verseCount = verses.length;
+                    var colsize = verseCount / 2;
+                    for (var i = 0; i < verseCount; i++) {
+                        if (i < colsize) {
+                            colA.push(verses[i]);
+                        }
+                        else {
+                            colB.push(verses[i]);
+                        }
+                    }
+                    _this.verses([]);
+                    _this.verses(colA);
+                    _this.verses2([]);
+                    _this.verses2(colB);
+                }
+                else {
+                    var colA = _this.verses();
+                    var verses = _this.verses2();
+                    var verseCount = verses.length;
+                    for (var i = 0; i < verseCount; i++) {
+                        colA.push(verses[i]);
+                    }
+                    _this.verses([]);
+                    _this.verses(colA);
+                }
+                _this.splitVerses(!_this.splitVerses());
+            };
+            _this.selectSong = function (item) {
+                var songIndex = _this.songList.indexOf(item);
+                _this.getLyrics(songIndex);
+            };
             return _this;
         }
         HomeViewModel.prototype.init = function (successFunction) {
             var me = this;
-            me.executingService(true);
+            for (var i = 0; i < 4; i++) {
+                this.songs[i] = ko.observableArray();
+            }
             var request = null;
             me.services.executeService('GetSongs', request, function (serviceResponse) {
                 if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                     var response = serviceResponse.Value;
-                    me.verses(response.verses);
-                    me.songs(response.songs);
                     me.sets(response.sets);
+                    me.verses(response.verses);
                     me.title(response.title);
+                    me.loadSet(response);
                 }
             })
                 .fail(function () {
                 var trace = me.services.getErrorInformation();
             })
                 .always(function () {
-                me.executingService(false);
                 me.bindDefaultSection();
                 successFunction();
             });

@@ -26,3 +26,23 @@
 .menu-label {
     font-weight: bold !important;
 }
+
+.linkhighlight {
+    border: 1px solid black;
+}
+
+.linklist {
+    list-style: none;
+    padding-left: 0;
+}
+
+.linklist a {
+    color: black;
+}
+.linkhighlight a {
+    font-weight: bold;
+}
+
+.linklist li {
+    padding-left: 1rem;
+}

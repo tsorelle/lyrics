@@ -1,57 +1,89 @@
 <div id="home-load-message"><span class="fa fa-spinner fa-pulse fa-2x" style="color:lightgrey"></span></div>
 <div id="home-view-container" style="display: none">
-    <div class="row">
+    <div class="row" data-bind="visible:page()=='lyrics'">
         <div class="col-md-12" id="menu">
-            <button class="btn menu-label"><span data-bind="text:title"></span>:</button>
-            <div style="float:right">
-            <button class="btn btn-default"  style="min-width:3em" data-bind="click:reduceFont, visible:textSize() > 1">
-                <i class="fa fa-search-minus"></i>
-            </button>
-            <button class="btn btn-default"  style="min-width:3em" data-bind="visible:textSize() <= 1">
-                &nbsp;
-            </button>
+            <button data-bind="click:prevSong" class="btn default"><i class="fa fa-backward"></i></button>
+            <button class="btn menu-label"><span data-bind="text:title"></span></button>
+            <button data-bind="click:nextSong" class="btn default"><i class="fa fa-forward"></i></button>
+            <button data-bind="click:showSongList"class="btn default"><i class="fa fa-music"></i></button>
+            <button data-bind="click:splitColumns" class="btn default"><i class="fa fa-columns" aria-hidden="true"></i></button>
 
-            <button class="btn menu-label" style="min-width:3em"> <span data-bind="text:textSize"></span></button>
-            <button class="btn btn-default" data-bind="click:enlargeFont"><i class="fa fa-search-plus"></i></button>
+            <div style="float:right">
+                <button class="btn btn-default"  style="min-width:3em" data-bind="click:reduceFont, visible:textSize() > 1">
+                    <i class="fa fa-search-minus"></i>
+                </button>
+                <button class="btn btn-default"  style="min-width:3em" data-bind="visible:textSize() <= 1">
+                    &nbsp;
+                </button>
+
+                <button class="btn menu-label" style="min-width:3em"> <span data-bind="text:textSize"></span></button>
+
+                <button class="btn btn-default" data-bind="click:enlargeFont"><i class="fa fa-search-plus"></i></button>
             </div>
         </div>
+        <div style="margin-top: 5ex">
+        </div>
     </div>
-
-    <div style="margin-top: 4ex">
-    <div class="row" data-bind="style:{'font-size': textSize() + 'rem'}">
-        <div class="col-md-12 verse" data-bind="foreach:verses">
+    <div data-bind="visible:page()=='loading'"><span class="fa fa-spinner fa-pulse fa-2x" style="color:lightgrey"></span></div>
+    <div class="row" data-bind="visible:page()=='lyrics', style:{'font-size': textSize() + 'rem'}">
+        <div data-bind="foreach:verses, css:{'col-md-6': splitVerses}">
                 <div data-bind="foreach:lines" style="padding-bottom: 1.5ex">
                     <div>
                         <span data-bind="text:$data"></span>
                     </div>
                 </div>
         </div>
+
+        <div class="col-md-6" data-bind="visible:splitVerses, foreach:verses2">
+            <div data-bind="foreach:lines" style="padding-bottom: 1.5ex">
+                <div>
+                    <span data-bind="text:$data"></span>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="row">
-        <div class="col-md-3 offset-md-1">
-            one- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sodales risus nunc, vitae vulputate augue placerat vel. Mauris eu faucibus neque. Nullam ut dui sed velit blandit accumsan a in enim. Ut cursus sem urna, eu imperdiet turpis tempus condimentum. In hac habitasse platea dictumst. Nunc mollis leo eu pellentesque elementum. In ullamcorper libero vel mauris rhoncus, pulvinar consectetur dui sollicitudin. Ut consequat vel tellus at semper. Suspendisse at ex finibus, gravida felis vitae, tempor tellus. In ligula purus, lacinia ac ex in, consequat egestas massa. Suspendisse tempus felis nec tellus semper, vitae pretium nunc maximus.
-            Sed iaculis elit ac lorem eleifend maximus. Aliquam quis eleifend nisl. Sed lacinia diam quam. Suspendisse fermentum congue leo ac vestibulum. Ut vitae turpis tempus, volutpat mauris vehicula, elementum tellus. Nullam egestas magna vel lorem sodales vehicula. Integer imperdiet imperdiet laoreet. Aliquam erat volutpat. Proin et auctor odio. Suspendisse luctus fringilla erat, ac rhoncus tortor lacinia nec. Donec in ante facilisis, molestie nisl vel, efficitur diam. Phasellus lorem risus, ullamcorper sed finibus at, fermentum vel tellus. Praesent mollis, mi at eleifend semper, purus erat lobortis ipsum, id congue magna ex lobortis sem. Integer ut mi in purus viverra pharetra id sed dolor. Etiam semper at mi eget ornare.
-            Nunc at est dui. Vestibulum eleifend ornare nunc, consectetur ultricies nibh blandit sed. Duis tellus nisl, malesuada ac condimentum tempus, porta a felis. Curabitur ac dignissim elit. In hac habitasse platea dictumst. Aliquam consequat finibus ante in commodo. Morbi nec ex dictum arcu sodales maximus. Integer sagittis arcu at molestie scelerisque. Vivamus gravida felis ut risus consequat scelerisque. In id feugiat arcu.
-            Nulla interdum quam ac felis eleifend commodo. Nullam condimentum, nulla nec sagittis dapibus, turpis velit finibus urna, nec ultrices mi urna in mi. Fusce blandit ultricies auctor. Nulla facilisi. Donec lacus sem, tincidunt nec lacus et, pulvinar congue diam. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nulla ac commodo turpis.
-            Cras nunc urna, consequat vitae sagittis eget, sollicitudin vel lorem. Ut feugiat porta magna eu suscipit. Sed at laoreet augue. Vestibulum quis mollis odio. Curabitur lacinia enim ac leo dictum rhoncus sed quis ex. Ut dictum, velit sed interdum interdum, velit purus vestibulum diam, a vestibulum lorem quam in tellus. Donec scelerisque interdum dictum. Donec vestibulum, dolor eget interdum vestibulum, purus massa molestie ligula, vitae iaculis libero arcu vel risus. Mauris ac lectus mauris. Suspendisse pharetra ullamcorper metus id lacinia.
-            Curabitur ac scelerisque metus. Ut non orci non purus gravida auctor. Vestibulum sollicitudin bibendum eros eu aliquet. Fusce quis eleifend nulla, ac ultricies ex. In lobortis consequat nunc vel mollis. Proin pellentesque velit justo, nec vulputate erat volutpat eu. Suspendisse congue turpis nec dignissim porttitor.
+    <div class="row" style="padding-top: 2ex" data-bind="visible:page()=='songs'">
+        <div class="col-md-2" style="border-right: 1px solid lightgrey" >
+            <h3>Sets</h3>
+            <ul class="linklist" data-bind="foreach:sets">
+                <li  data-bind="css:{linkhighlight: $root.set() == Value}"><a href="#"><span data-bind="text:Name"></span>
+                </a> </li>
+            </ul>
         </div>
-        <div class="col-md-3">
-            two - Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sodales risus nunc, vitae vulputate augue placerat vel. Mauris eu faucibus neque. Nullam ut dui sed velit blandit accumsan a in enim. Ut cursus sem urna, eu imperdiet turpis tempus condimentum. In hac habitasse platea dictumst. Nunc mollis leo eu pellentesque elementum. In ullamcorper libero vel mauris rhoncus, pulvinar consectetur dui sollicitudin. Ut consequat vel tellus at semper. Suspendisse at ex finibus, gravida felis vitae, tempor tellus. In ligula purus, lacinia ac ex in, consequat egestas massa. Suspendisse tempus felis nec tellus semper, vitae pretium nunc maximus.
-            Sed iaculis elit ac lorem eleifend maximus. Aliquam quis eleifend nisl. Sed lacinia diam quam. Suspendisse fermentum congue leo ac vestibulum. Ut vitae turpis tempus, volutpat mauris vehicula, elementum tellus. Nullam egestas magna vel lorem sodales vehicula. Integer imperdiet imperdiet laoreet. Aliquam erat volutpat. Proin et auctor odio. Suspendisse luctus fringilla erat, ac rhoncus tortor lacinia nec. Donec in ante facilisis, molestie nisl vel, efficitur diam. Phasellus lorem risus, ullamcorper sed finibus at, fermentum vel tellus. Praesent mollis, mi at eleifend semper, purus erat lobortis ipsum, id congue magna ex lobortis sem. Integer ut mi in purus viverra pharetra id sed dolor. Etiam semper at mi eget ornare.
-            Nunc at est dui. Vestibulum eleifend ornare nunc, consectetur ultricies nibh blandit sed. Duis tellus nisl, malesuada ac condimentum tempus, porta a felis. Curabitur ac dignissim elit. In hac habitasse platea dictumst. Aliquam consequat finibus ante in commodo. Morbi nec ex dictum arcu sodales maximus. Integer sagittis arcu at molestie scelerisque. Vivamus gravida felis ut risus consequat scelerisque. In id feugiat arcu.
-            Nulla interdum quam ac felis eleifend commodo. Nullam condimentum, nulla nec sagittis dapibus, turpis velit finibus urna, nec ultrices mi urna in mi. Fusce blandit ultricies auctor. Nulla facilisi. Donec lacus sem, tincidunt nec lacus et, pulvinar congue diam. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nulla ac commodo turpis.
-            Cras nunc urna, consequat vitae sagittis eget, sollicitudin vel lorem. Ut feugiat porta magna eu suscipit. Sed at laoreet augue. Vestibulum quis mollis odio. Curabitur lacinia enim ac leo dictum rhoncus sed quis ex. Ut dictum, velit sed interdum interdum, velit purus vestibulum diam, a vestibulum lorem quam in tellus. Donec scelerisque interdum dictum. Donec vestibulum, dolor eget interdum vestibulum, purus massa molestie ligula, vitae iaculis libero arcu vel risus. Mauris ac lectus mauris. Suspendisse pharetra ullamcorper metus id lacinia.
-            Curabitur ac scelerisque metus. Ut non orci non purus gravida auctor. Vestibulum sollicitudin bibendum eros eu aliquet. Fusce quis eleifend nulla, ac ultricies ex. In lobortis consequat nunc vel mollis. Proin pellentesque velit justo, nec vulputate erat volutpat eu. Suspendisse congue turpis nec dignissim porttitor.
+        <div class="col-md-10">
+            <h3>Songs</h3>
+            <div class="row">
+                <div class="col-md-3">
+                    <ul class="linklist" data-bind="foreach:songs[0]()">
+                        <li  data-bind="css:{linkhighlight: $root.selectedSong() == Value}">
+                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:Name"></span></a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <ul class="linklist" data-bind="foreach:songs[1]()">
+                        <li  data-bind="css:{linkhighlight: $root.selectedSong() == Value}">
+                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:Name"></span></a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <ul class="linklist" data-bind="foreach:songs[2]()">
+                        <li  data-bind="css:{linkhighlight: $root.selectedSong() == Value}">
+                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:Name"></span></a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-md-3">
+                    <ul class="linklist" data-bind="foreach:songs[3]()">
+                        <li  data-bind="css:{linkhighlight: $root.selectedSong() == Value}">
+                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:Name"></span></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <div class="col-md-3">
-            two - Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sodales risus nunc, vitae vulputate augue placerat vel. Mauris eu faucibus neque. Nullam ut dui sed velit blandit accumsan a in enim. Ut cursus sem urna, eu imperdiet turpis tempus condimentum. In hac habitasse platea dictumst. Nunc mollis leo eu pellentesque elementum. In ullamcorper libero vel mauris rhoncus, pulvinar consectetur dui sollicitudin. Ut consequat vel tellus at semper. Suspendisse at ex finibus, gravida felis vitae, tempor tellus. In ligula purus, lacinia ac ex in, consequat egestas massa. Suspendisse tempus felis nec tellus semper, vitae pretium nunc maximus.
-            Sed iaculis elit ac lorem eleifend maximus. Aliquam quis eleifend nisl. Sed lacinia diam quam. Suspendisse fermentum congue leo ac vestibulum. Ut vitae turpis tempus, volutpat mauris vehicula, elementum tellus. Nullam egestas magna vel lorem sodales vehicula. Integer imperdiet imperdiet laoreet. Aliquam erat volutpat. Proin et auctor odio. Suspendisse luctus fringilla erat, ac rhoncus tortor lacinia nec. Donec in ante facilisis, molestie nisl vel, efficitur diam. Phasellus lorem risus, ullamcorper sed finibus at, fermentum vel tellus. Praesent mollis, mi at eleifend semper, purus erat lobortis ipsum, id congue magna ex lobortis sem. Integer ut mi in purus viverra pharetra id sed dolor. Etiam semper at mi eget ornare.
-            Nunc at est dui. Vestibulum eleifend ornare nunc, consectetur ultricies nibh blandit sed. Duis tellus nisl, malesuada ac condimentum tempus, porta a felis. Curabitur ac dignissim elit. In hac habitasse platea dictumst. Aliquam consequat finibus ante in commodo. Morbi nec ex dictum arcu sodales maximus. Integer sagittis arcu at molestie scelerisque. Vivamus gravida felis ut risus consequat scelerisque. In id feugiat arcu.
-            Nulla interdum quam ac felis eleifend commodo. Nullam condimentum, nulla nec sagittis dapibus, turpis velit finibus urna, nec ultrices mi urna in mi. Fusce blandit ultricies auctor. Nulla facilisi. Donec lacus sem, tincidunt nec lacus et, pulvinar congue diam. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nulla ac commodo turpis.
-            Cras nunc urna, consequat vitae sagittis eget, sollicitudin vel lorem. Ut feugiat porta magna eu suscipit. Sed at laoreet augue. Vestibulum quis mollis odio. Curabitur lacinia enim ac leo dictum rhoncus sed quis ex. Ut dictum, velit sed interdum interdum, velit purus vestibulum diam, a vestibulum lorem quam in tellus. Donec scelerisque interdum dictum. Donec vestibulum, dolor eget interdum vestibulum, purus massa molestie ligula, vitae iaculis libero arcu vel risus. Mauris ac lectus mauris. Suspendisse pharetra ullamcorper metus id lacinia.
-            Curabitur ac scelerisque metus. Ut non orci non purus gravida auctor. Vestibulum sollicitudin bibendum eros eu aliquet. Fusce quis eleifend nulla, ac ultricies ex. In lobortis consequat nunc vel mollis. Proin pellentesque velit justo, nec vulputate erat volutpat eu. Suspendisse congue turpis nec dignissim porttitor.
-        </div>
-     </div>
+    </div>
 </div>
-</div>
+
