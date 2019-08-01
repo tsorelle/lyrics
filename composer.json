@@ -1,0 +1,25 @@
+{
+  "name": "twoquakers/lyrics",
+  "version" : "3.0",
+  "description": "Framework for KnockoutJS based applets in CMS systems",
+  "minimum-stability": "stable",
+  "license": "GPL-3.0+",
+  "authors": [
+    {
+      "name": "Terry SoRelle",
+      "email": "tls@2quakers.net"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Tops\\" : "web.root/modules/src/tops",
+      "Peanut\\" : "web.root/modules/src/peanut",
+      "Peanut\\testing\\" : "tests/lib",
+      "Peanut\\cms\\" : "web.root/pnutcms/src",
+      "TwoQuakers\\" : "web.root/application/peanut/src/Twoquakers"
+    }
+  },
+  "require": {
+    "phpunit/phpunit": "6.5.0"
+  }
+}

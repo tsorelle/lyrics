@@ -1,0 +1,28 @@
+.fullscreen {
+    margin: 0 !important;
+    max-width: 100%;
+    padding-left: 0.5rem;
+    padding-right: 0.1rem;
+    padding-top: 0;
+}
+
+.verse {
+    padding-left: 1rem;
+    padding-right: 1rem
+}
+#menu {
+   padding-bottom: 0;
+    margin-bottom: 0;
+    border: 1px solid black;
+    position: fixed;
+    background-color: white;
+    z-index: 99;
+    max-width: 98%;
+}
+
+.container {
+    max-width: 100%;
+}
+.menu-label {
+    font-weight: bold !important;
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="0580e497-1748-4ccf-b0d6-68ed05d79b7c" name="lyrics.2quakers.net" url="http://lyrics.2quakers.net">
+        <fileTransfer host="ftp.2quakers.net" port="21" username="twoquake" password="dfe8dfeadfc4dfc0df9adfe7df9adfdfdfd9dfcf">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="21" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

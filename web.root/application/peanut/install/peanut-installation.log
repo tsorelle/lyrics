@@ -1,0 +1,32 @@
+2017-09-24 17:45:58::peanut::1.0::peanut: installation started
+2017-09-24 17:45:58::peanut::1.0::TEST: Created table: tops_permissions
+2017-09-24 17:45:58::peanut::1.0::TEST: Added role 'Peanut Administrator'
+2017-09-24 17:45:58::peanut::1.0::installation completed
+2017-09-24 17:46:23::mailboxes::1.0::mailboxes: installation started
+2017-09-24 17:46:23::mailboxes::1.0::TEST: Created table: tops_mailboxes
+2017-09-24 17:46:23::mailboxes::1.0::TEST: Added role 'Peanut Mail Manager'
+2017-09-24 17:46:23::mailboxes::1.0::TEST: Added permission 'Manage mailboxes'
+2017-09-24 17:46:23::mailboxes::1.0::TEST: Granted permission 'Manage mailboxes' to 'Peanut Administrator'
+2017-09-24 17:46:23::mailboxes::1.0::TEST: Granted permission 'Manage mailboxes' to 'Peanut Mail Manager'
+2017-09-24 17:46:23::mailboxes::1.0::installation completed
+2017-09-24 17:46:36::permissions::1.0::permissions: installation started
+2017-09-24 17:46:36::permissions::1.0::TEST: Created table: tops_rolepermissions
+2017-09-24 17:46:36::permissions::1.0::TEST: Added permission 'Manage Permissions'
+2017-09-24 17:46:36::permissions::1.0::TEST: Granted permission 'Manage permissions' to 'Peanut Administrator'
+2017-09-24 17:46:36::permissions::1.0::installation completed
+2017-09-24 17:46:47::permissions::1.0::permissions: uninstall started
+2017-09-24 17:46:47::permissions::1.0::TEST: Revoke permission 'Manage permissions' to 'Peanut Administrator'
+2017-09-24 17:46:47::permissions::1.0::TEST: Remove permission 'Manage Permissions'
+2017-09-24 17:46:47::permissions::1.0::TEST: Would have dropped table: tops_rolepermissions
+2017-09-24 17:46:47::permissions::1.0::uninstalled
+2017-09-24 17:46:47::mailboxes::1.0::mailboxes: uninstall started
+2017-09-24 17:46:47::mailboxes::1.0::TEST: Revoke permission 'Manage mailboxes' to 'Peanut Administrator'
+2017-09-24 17:46:47::mailboxes::1.0::TEST: Revoke permission 'Manage mailboxes' to 'Peanut Mail Manager'
+2017-09-24 17:46:47::mailboxes::1.0::TEST: Remove role 'Peanut Mail Manager'
+2017-09-24 17:46:47::mailboxes::1.0::TEST: Remove permission 'Manage mailboxes'
+2017-09-24 17:46:47::mailboxes::1.0::TEST: Would have dropped table: tops_mailboxes
+2017-09-24 17:46:47::mailboxes::1.0::uninstalled
+2017-09-24 17:46:47::peanut::1.0::peanut: uninstall started
+2017-09-24 17:46:47::peanut::1.0::TEST: Remove role 'Peanut Administrator'
+2017-09-24 17:46:47::peanut::1.0::TEST: Would have dropped table: tops_permissions
+2017-09-24 17:46:47::peanut::1.0::uninstalled
