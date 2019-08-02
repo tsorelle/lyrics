@@ -32,6 +32,7 @@ var Peanut;
             _this.title = ko.observable('');
             _this.songIndex = 0;
             _this.songCount = 0;
+            _this.maxSongColumnItems = 0;
             _this.setSongIndex = function (value) {
                 _this.songIndex = value;
                 var current = _this.songList[_this.songIndex];
@@ -103,7 +104,6 @@ var Peanut;
             _this.loadSongList = function (songs) {
                 _this.songList = songs;
                 _this.songCount = songs.length;
-                var maxItems = 10;
                 for (var i = 0; i < 4; i++) {
                     _this.songs[i]([]);
                 }
@@ -111,7 +111,7 @@ var Peanut;
                 var columnIndex = 0;
                 for (var i = 0; i < songs.length; i++) {
                     column.push(songs[i]);
-                    if (column.length >= maxItems && columnIndex < 3) {
+                    if (column.length >= _this.maxSongColumnItems && columnIndex < 3) {
                         _this.songs[columnIndex](column);
                         columnIndex++;
                         column = [];
@@ -168,6 +168,7 @@ var Peanut;
                     me.set(response.set);
                     _this.loadSongList(response.songs);
                     me.setVerses(response.verses);
+                    me.maxSongColumnItems = Math.floor(response.catalogSize / 4);
                 }
             })
                 .fail(function () {

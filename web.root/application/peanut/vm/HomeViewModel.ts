@@ -15,6 +15,7 @@ namespace Peanut {
         set: string;
         sets: INameValuePair[];
         songs: INameValuePair[];
+        catalogSize: number;
     }
 
     interface IGetSetResponse extends IGetVersesResponse {
@@ -46,6 +47,7 @@ namespace Peanut {
 
         songIndex = 0;
         songCount = 0;
+        maxSongColumnItems = 0;
 
         init(successFunction?: () => void) {
             let me = this;
@@ -61,6 +63,7 @@ namespace Peanut {
                     me.set(response.set);
                     this.loadSongList(response.songs);
                     me.setVerses(response.verses);
+                    me.maxSongColumnItems = Math.floor(response.catalogSize / 4);
                 }
             })
                 .fail(() => {
@@ -154,7 +157,6 @@ namespace Peanut {
         loadSongList = (songs: INameValuePair[]) => {
             this.songList = songs;
             this.songCount = songs.length;
-            let maxItems = 10;
             for (let i = 0; i < 4; i++) {
                 this.songs[i]([]);
             }
@@ -163,7 +165,7 @@ namespace Peanut {
             let columnIndex = 0;
             for(let i = 0; i < songs.length; i++) {
                 column.push(songs[i]);
-                if (column.length >= maxItems && columnIndex < 3) {
+                if (column.length >= this.maxSongColumnItems && columnIndex < 3) {
                     this.songs[columnIndex](column);
                     columnIndex++;
                     column = [];

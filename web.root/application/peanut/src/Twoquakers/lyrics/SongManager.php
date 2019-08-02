@@ -130,4 +130,9 @@ class SongManager
         return $result;
 
     }
+
+    public function getSongCount()
+    {
+        return count($this->getAllSongs());
+    }
 }

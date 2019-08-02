@@ -43,6 +43,7 @@ class GetSongsCommand extends TServiceCommand
         }
         $response->verses = $manager->getVerses($filename);
         $response->title = $title;
+        $response->catalogSize = $manager->getSongCount();
         $this->setReturnValue($response);
     }
 }
