@@ -19,7 +19,10 @@ class SongManager
      */
     public function getSetList()
     {
-        return $this->dirToNameValueList('data/sets');
+        $result = $this->dirToNameValueList('data/sets');
+        $all = TNameValuePair::Create('All','all');
+        array_unshift($result,$all);
+        return $result;
     }
 
     /**
@@ -27,6 +30,9 @@ class SongManager
      * @return TNameValuePair[];
      */
     public function getSet($setName) {
+        if ($setName === 'all') {
+            return $this->dirToNameValueList('data/songs');
+        }
         $path = TPath::fromFileRoot('data/sets/'.$setName);
         $names = @file($path);
         if ($names === false) {

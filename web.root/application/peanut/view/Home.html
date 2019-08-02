@@ -46,8 +46,8 @@
         <div class="col-md-2" style="border-right: 1px solid lightgrey" >
             <h3>Sets</h3>
             <ul class="linklist" data-bind="foreach:sets">
-                <li  data-bind="css:{linkhighlight: $root.set() == Value}"><a href="#"><span data-bind="text:Name"></span>
-                </a> </li>
+                <li  data-bind="css:{linkhighlight: $root.set() == Value}">
+                    <a href="#" data-bind="click:$root.selectSet"><span data-bind="text:Name"></span></a> </li>
             </ul>
         </div>
         <div class="col-md-10">

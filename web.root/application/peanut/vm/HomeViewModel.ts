@@ -7,13 +7,17 @@ namespace Peanut {
     import INameValuePair = Peanut.INameValuePair;
 
     interface IGetVersesResponse {
-        title: string;
+        // title: string;
         verses: any[];
     }
 
     interface IGetSongsResponse extends IGetVersesResponse {
         set: string;
         sets: INameValuePair[];
+        songs: INameValuePair[];
+    }
+
+    interface IGetSetResponse extends IGetVersesResponse {
         songs: INameValuePair[];
     }
 
@@ -54,11 +58,9 @@ namespace Peanut {
                 if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                     let response = <IGetSongsResponse>serviceResponse.Value;
                     me.sets(response.sets);
-                    me.verses = response.verses;
-                    me.verses1(me.verses);
-                    me.title(response.title);
-                    me.loadSet(response);
-
+                    me.set(response.set);
+                    this.loadSongList(response.songs);
+                    me.setVerses(response.verses);
                 }
             })
                 .fail(() => {
@@ -70,18 +72,11 @@ namespace Peanut {
                 });
         }
         
-        loadSet = (response: IGetSongsResponse) => {
-            this.loadSongList(response.songs);
-            this.songIndex = 0;
-
-            this.songCount = response.songs.length;
-            // this.selectedSong = response.songs[0].Value;
-            this.set(response.set);
-        };
-
         setSongIndex = (value: number) => {
             this.songIndex = value;
-            this.selectedSong(this.songList[this.songIndex].Value);
+            let current = this.songList[this.songIndex];
+            this.selectedSong(current.Value);
+            this.title(current.Name);
         };
 
         reduceFont = () => {
@@ -118,14 +113,34 @@ namespace Peanut {
             me.services.executeService('GetVerses', current, (serviceResponse: IServiceResponse) => {
                 if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                     let response = <IGetVersesResponse>serviceResponse.Value;
-
-                    me.verses = response.verses;
-                    me.verses1(response.verses);
-                    me.verses2([]);
-                    me.columnDisplay(false);
-
-                    me.title(response.title);
+                    me.setVerses(response.verses);
                     me.setSongIndex(songIndex);
+                }
+            })
+                .fail(() => {
+                    let trace = me.services.getErrorInformation();
+                })
+                .always(() => {
+                    me.page('lyrics');
+                });
+        };
+
+        setVerses = (verses: any[]) => {
+            this.verses = verses;
+            this.verses1(verses);
+            this.verses2([]);
+            this.columnDisplay(false);
+        };
+
+        selectSet = (set: INameValuePair) => {
+            let me = this;
+            me.page('loading');
+            me.services.executeService('GetSet', set.Value, (serviceResponse: IServiceResponse) => {
+                if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                    let response = <IGetSetResponse>serviceResponse.Value;
+                    me.set(set.Value);
+                    this.loadSongList(response.songs);
+                    me.setVerses(response.verses);
                 }
             })
                 .fail(() => {
@@ -138,10 +153,8 @@ namespace Peanut {
 
         loadSongList = (songs: INameValuePair[]) => {
             this.songList = songs;
-            let colCount = songs.length % 4;
+            this.songCount = songs.length;
             let maxItems = 10;
-            let index = 0;
-            let colIndex = 0;
             for (let i = 0; i < 4; i++) {
                 this.songs[i]([]);
             }
@@ -185,7 +198,6 @@ namespace Peanut {
                 this.verses2(colB);
             }
             else {
-                this.verses2([]);
                 this.verses1(this.verses);
             }
             this.columnDisplay(split);

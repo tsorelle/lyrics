@@ -32,15 +32,11 @@ var Peanut;
             _this.title = ko.observable('');
             _this.songIndex = 0;
             _this.songCount = 0;
-            _this.loadSet = function (response) {
-                _this.loadSongList(response.songs);
-                _this.songIndex = 0;
-                _this.songCount = response.songs.length;
-                _this.set(response.set);
-            };
             _this.setSongIndex = function (value) {
                 _this.songIndex = value;
-                _this.selectedSong(_this.songList[_this.songIndex].Value);
+                var current = _this.songList[_this.songIndex];
+                _this.selectedSong(current.Value);
+                _this.title(current.Name);
             };
             _this.reduceFont = function () {
                 if (_this.textSize() > 1) {
@@ -69,12 +65,32 @@ var Peanut;
                 me.services.executeService('GetVerses', current, function (serviceResponse) {
                     if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                         var response = serviceResponse.Value;
-                        me.verses = response.verses;
-                        me.verses1(response.verses);
-                        me.verses2([]);
-                        me.columnDisplay(false);
-                        me.title(response.title);
+                        me.setVerses(response.verses);
                         me.setSongIndex(songIndex);
+                    }
+                })
+                    .fail(function () {
+                    var trace = me.services.getErrorInformation();
+                })
+                    .always(function () {
+                    me.page('lyrics');
+                });
+            };
+            _this.setVerses = function (verses) {
+                _this.verses = verses;
+                _this.verses1(verses);
+                _this.verses2([]);
+                _this.columnDisplay(false);
+            };
+            _this.selectSet = function (set) {
+                var me = _this;
+                me.page('loading');
+                me.services.executeService('GetSet', set.Value, function (serviceResponse) {
+                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                        var response = serviceResponse.Value;
+                        me.set(set.Value);
+                        _this.loadSongList(response.songs);
+                        me.setVerses(response.verses);
                     }
                 })
                     .fail(function () {
@@ -86,10 +102,8 @@ var Peanut;
             };
             _this.loadSongList = function (songs) {
                 _this.songList = songs;
-                var colCount = songs.length % 4;
+                _this.songCount = songs.length;
                 var maxItems = 10;
-                var index = 0;
-                var colIndex = 0;
                 for (var i = 0; i < 4; i++) {
                     _this.songs[i]([]);
                 }
@@ -130,7 +144,6 @@ var Peanut;
                     _this.verses2(colB);
                 }
                 else {
-                    _this.verses2([]);
                     _this.verses1(_this.verses);
                 }
                 _this.columnDisplay(split);
@@ -142,6 +155,7 @@ var Peanut;
             return _this;
         }
         HomeViewModel.prototype.init = function (successFunction) {
+            var _this = this;
             var me = this;
             for (var i = 0; i < 4; i++) {
                 this.songs[i] = ko.observableArray();
@@ -151,10 +165,9 @@ var Peanut;
                 if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                     var response = serviceResponse.Value;
                     me.sets(response.sets);
-                    me.verses = response.verses;
-                    me.verses1(me.verses);
-                    me.title(response.title);
-                    me.loadSet(response);
+                    me.set(response.set);
+                    _this.loadSongList(response.songs);
+                    me.setVerses(response.verses);
                 }
             })
                 .fail(function () {
