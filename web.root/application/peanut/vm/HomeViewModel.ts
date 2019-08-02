@@ -25,7 +25,8 @@ namespace Peanut {
     export class HomeViewModel extends Peanut.ViewModelBase {
         // observables
         page= ko.observable('lyrics');
-        verses = ko.observableArray();
+        verses: any[] = [];
+        verses1 = ko.observableArray();
         verses2 = ko.observableArray();
         set = ko.observable('');
         sets = ko.observableArray<INameValuePair>();
@@ -33,7 +34,7 @@ namespace Peanut {
         songs : KnockoutObservableArray<INameValuePair>[] = [];
         allsongs = ko.observableArray<INameValuePair>();
         textSize = ko.observable(2);
-        splitVerses = ko.observable(false);
+        columnDisplay = ko.observable(false);
         selectedSong = ko.observable('');
         title = ko.observable('');
 
@@ -53,7 +54,8 @@ namespace Peanut {
                 if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                     let response = <IGetSongsResponse>serviceResponse.Value;
                     me.sets(response.sets);
-                    me.verses(response.verses);
+                    me.verses = response.verses;
+                    me.verses1(me.verses);
                     me.title(response.title);
                     me.loadSet(response);
 
@@ -116,9 +118,12 @@ namespace Peanut {
             me.services.executeService('GetVerses', current, (serviceResponse: IServiceResponse) => {
                 if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                     let response = <IGetVersesResponse>serviceResponse.Value;
-                    me.verses(response.verses);
-                    me.splitVerses(false);
+
+                    me.verses = response.verses;
+                    me.verses1(response.verses);
                     me.verses2([]);
+                    me.columnDisplay(false);
+
                     me.title(response.title);
                     me.setSongIndex(songIndex);
                 }
@@ -160,45 +165,34 @@ namespace Peanut {
         };
 
         splitColumns = () => {
-            let split = !this.splitVerses();
-            let colB = [];
+            let split = !this.columnDisplay();
+            this.verses1([]);
             this.verses2([]);
             if (split) {
                 let colA = [];
-                let verses = this.verses();
-                let verseCount = verses.length;
+                let colB = [];
+                let verseCount = this.verses.length;
                 let colsize = verseCount / 2;
                 for (let i= 0; i<verseCount; i++) {
                     if (i < colsize) {
-                        colA.push(verses[i]);
+                        colA.push(this.verses[i]);
                     }
                     else {
-                        colB.push(verses[i]);
+                        colB.push(this.verses[i]);
                     }
                 }
-                this.verses([]);
-                this.verses(colA);
-                this.verses2([]);
+                this.verses1(colA);
                 this.verses2(colB);
             }
             else {
-                let colA = this.verses();
-                let verses = this.verses2();
-                let verseCount = verses.length;
-                for (let i= 0; i<verseCount; i++) {
-                    colA.push(verses[i]);
-                }
-                this.verses([]);
-                this.verses(colA);
+                this.verses2([]);
+                this.verses1(this.verses);
             }
-
-
-            this.splitVerses(!this.splitVerses());
+            this.columnDisplay(split);
         };
 
         selectSong = (item : INameValuePair) => {
             let songIndex = this.songList.indexOf(item);
-            // alert(item.Name);
             this.getLyrics(songIndex);
         }
     }

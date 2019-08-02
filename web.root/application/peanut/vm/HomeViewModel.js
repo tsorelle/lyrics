@@ -18,7 +18,8 @@ var Peanut;
         function HomeViewModel() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.page = ko.observable('lyrics');
-            _this.verses = ko.observableArray();
+            _this.verses = [];
+            _this.verses1 = ko.observableArray();
             _this.verses2 = ko.observableArray();
             _this.set = ko.observable('');
             _this.sets = ko.observableArray();
@@ -26,7 +27,7 @@ var Peanut;
             _this.songs = [];
             _this.allsongs = ko.observableArray();
             _this.textSize = ko.observable(2);
-            _this.splitVerses = ko.observable(false);
+            _this.columnDisplay = ko.observable(false);
             _this.selectedSong = ko.observable('');
             _this.title = ko.observable('');
             _this.songIndex = 0;
@@ -68,9 +69,10 @@ var Peanut;
                 me.services.executeService('GetVerses', current, function (serviceResponse) {
                     if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                         var response = serviceResponse.Value;
-                        me.verses(response.verses);
-                        me.splitVerses(false);
+                        me.verses = response.verses;
+                        me.verses1(response.verses);
                         me.verses2([]);
+                        me.columnDisplay(false);
                         me.title(response.title);
                         me.setSongIndex(songIndex);
                     }
@@ -108,38 +110,30 @@ var Peanut;
                 _this.page('songs');
             };
             _this.splitColumns = function () {
-                var split = !_this.splitVerses();
-                var colB = [];
+                var split = !_this.columnDisplay();
+                _this.verses1([]);
                 _this.verses2([]);
                 if (split) {
                     var colA = [];
-                    var verses = _this.verses();
-                    var verseCount = verses.length;
+                    var colB = [];
+                    var verseCount = _this.verses.length;
                     var colsize = verseCount / 2;
                     for (var i = 0; i < verseCount; i++) {
                         if (i < colsize) {
-                            colA.push(verses[i]);
+                            colA.push(_this.verses[i]);
                         }
                         else {
-                            colB.push(verses[i]);
+                            colB.push(_this.verses[i]);
                         }
                     }
-                    _this.verses([]);
-                    _this.verses(colA);
-                    _this.verses2([]);
+                    _this.verses1(colA);
                     _this.verses2(colB);
                 }
                 else {
-                    var colA = _this.verses();
-                    var verses = _this.verses2();
-                    var verseCount = verses.length;
-                    for (var i = 0; i < verseCount; i++) {
-                        colA.push(verses[i]);
-                    }
-                    _this.verses([]);
-                    _this.verses(colA);
+                    _this.verses2([]);
+                    _this.verses1(_this.verses);
                 }
-                _this.splitVerses(!_this.splitVerses());
+                _this.columnDisplay(split);
             };
             _this.selectSong = function (item) {
                 var songIndex = _this.songList.indexOf(item);
@@ -157,7 +151,8 @@ var Peanut;
                 if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                     var response = serviceResponse.Value;
                     me.sets(response.sets);
-                    me.verses(response.verses);
+                    me.verses = response.verses;
+                    me.verses1(me.verses);
                     me.title(response.title);
                     me.loadSet(response);
                 }
