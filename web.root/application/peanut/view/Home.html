@@ -1,12 +1,17 @@
 <div id="home-load-message"><span class="fa fa-spinner fa-pulse fa-2x" style="color:lightgrey"></span></div>
 <div id="home-view-container" style="display: none">
     <div class="row" data-bind="visible:page()=='lyrics'">
-        <div class="col-md-12" id="menu">
+        <div class="col-md-12 lyrics-menu">
             <button data-bind="click:prevSong" class="btn default"><i class="fa fa-backward"></i></button>
             <button class="btn menu-label"><span data-bind="text:title"></span></button>
             <button data-bind="click:nextSong" class="btn default"><i class="fa fa-forward"></i></button>
             <button data-bind="click:showSongList"class="btn default"><i class="fa fa-music"></i></button>
             <button data-bind="click:splitColumns" class="btn default"><i class="fa fa-columns" aria-hidden="true"></i></button>
+
+            <span data-bind="visible:loading" style="color:lightgrey">
+                <i class="fa fa-spinner fa-pulse"></i> Loading '<span data-bind="text:loading"></span>'
+            ...</span>
+
 
             <div style="float:right">
                 <button class="btn btn-default"  style="min-width:3em" data-bind="click:reduceFont, visible:textSize() > 1">
@@ -17,6 +22,8 @@
                 </button>
 
                 <button class="btn menu-label" style="min-width:3em"> <span data-bind="text:textSize"></span></button>
+
+
 
                 <button class="btn btn-default" data-bind="click:enlargeFont"><i class="fa fa-search-plus"></i></button>
             </div>
@@ -51,8 +58,18 @@
             </ul>
         </div>
         <div class="col-md-10">
-            <h3>Songs</h3>
+            <div>
+                <div style="color:lightgrey; float:right" data-bind="visible:loading">
+                    <i class="fa fa-spinner fa-pulse"></i> Loading set '<span data-bind="text:loading"></span>'
+                    ...
+                </div>
+
+                <h3>Songs</h3>
+            </div>
+
             <div class="row">
+                <div class="lyrics-menu" data-bind="visible:loading" >
+                </div>
                 <div class="col-md-3">
                     <ul class="linklist" data-bind="foreach:songs[0]()">
                         <li  data-bind="css:{linkhighlight: $root.selectedSong() == Value}">

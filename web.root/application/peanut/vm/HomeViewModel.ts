@@ -42,6 +42,7 @@ namespace Peanut {
         columnDisplay = ko.observable(false);
         selectedSong = ko.observable('');
         title = ko.observable('');
+        loading = ko.observable('');
 
         verseColumn : any; //ko.observable('col-md-6');
 
@@ -111,7 +112,7 @@ namespace Peanut {
             let me = this;
             let current = this.songList[songIndex];
 
-            me.page('loading');
+            me.loading(current.Name);
             let request = null;
             me.services.executeService('GetVerses', current, (serviceResponse: IServiceResponse) => {
                 if (serviceResponse.Result == Peanut.serviceResultSuccess) {
@@ -124,6 +125,7 @@ namespace Peanut {
                     let trace = me.services.getErrorInformation();
                 })
                 .always(() => {
+                    me.loading('');
                     me.page('lyrics');
                 });
         };
@@ -137,7 +139,8 @@ namespace Peanut {
 
         selectSet = (set: INameValuePair) => {
             let me = this;
-            me.page('loading');
+            // me.page('loading');
+            me.loading(set.Name);
             me.services.executeService('GetSet', set.Value, (serviceResponse: IServiceResponse) => {
                 if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                     let response = <IGetSetResponse>serviceResponse.Value;
@@ -150,7 +153,9 @@ namespace Peanut {
                     let trace = me.services.getErrorInformation();
                 })
                 .always(() => {
-                    me.page('lyrics');
+                    // me.page('lyrics');
+                    me.page('songs');
+                    me.loading('');
                 });
         };
 
@@ -207,7 +212,12 @@ namespace Peanut {
 
         selectSong = (item : INameValuePair) => {
             let songIndex = this.songList.indexOf(item);
-            this.getLyrics(songIndex);
+            if (songIndex == this.songIndex) {
+                this.page('lyrics');
+            }
+            else {
+                this.getLyrics(songIndex);
+            }
         }
     }
 }

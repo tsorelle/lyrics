@@ -30,6 +30,7 @@ var Peanut;
             _this.columnDisplay = ko.observable(false);
             _this.selectedSong = ko.observable('');
             _this.title = ko.observable('');
+            _this.loading = ko.observable('');
             _this.songIndex = 0;
             _this.songCount = 0;
             _this.maxSongColumnItems = 0;
@@ -61,7 +62,7 @@ var Peanut;
             _this.getLyrics = function (songIndex) {
                 var me = _this;
                 var current = _this.songList[songIndex];
-                me.page('loading');
+                me.loading(current.Name);
                 var request = null;
                 me.services.executeService('GetVerses', current, function (serviceResponse) {
                     if (serviceResponse.Result == Peanut.serviceResultSuccess) {
@@ -74,6 +75,7 @@ var Peanut;
                     var trace = me.services.getErrorInformation();
                 })
                     .always(function () {
+                    me.loading('');
                     me.page('lyrics');
                 });
             };
@@ -85,7 +87,7 @@ var Peanut;
             };
             _this.selectSet = function (set) {
                 var me = _this;
-                me.page('loading');
+                me.loading(set.Name);
                 me.services.executeService('GetSet', set.Value, function (serviceResponse) {
                     if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                         var response = serviceResponse.Value;
@@ -98,7 +100,8 @@ var Peanut;
                     var trace = me.services.getErrorInformation();
                 })
                     .always(function () {
-                    me.page('lyrics');
+                    me.page('songs');
+                    me.loading('');
                 });
             };
             _this.loadSongList = function (songs) {
@@ -150,7 +153,12 @@ var Peanut;
             };
             _this.selectSong = function (item) {
                 var songIndex = _this.songList.indexOf(item);
-                _this.getLyrics(songIndex);
+                if (songIndex == _this.songIndex) {
+                    _this.page('lyrics');
+                }
+                else {
+                    _this.getLyrics(songIndex);
+                }
             };
             return _this;
         }
