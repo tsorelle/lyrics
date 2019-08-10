@@ -2,11 +2,11 @@
 <div id="home-view-container" style="display: none">
     <div class="row" data-bind="visible:page()=='lyrics'">
         <div class="col-md-12 lyrics-menu">
-            <button data-bind="click:prevSong" class="btn default"><i class="fa fa-backward"></i></button>
+            <button title='Previous in set' data-bind="click:prevSong" class="btn default"><i class="fa fa-backward"></i></button>
             <button class="btn menu-label"><span data-bind="text:title"></span></button>
-            <button data-bind="click:nextSong" class="btn default"><i class="fa fa-forward"></i></button>
-            <button data-bind="click:showSongList"class="btn default"><i class="fa fa-music"></i></button>
-            <button data-bind="click:splitColumns" class="btn default"><i class="fa fa-columns" aria-hidden="true"></i></button>
+            <button title='Next in set' data-bind="click:nextSong" class="btn default"><i class="fa fa-forward"></i></button>
+            <button title='Song list' style="padding-left:2em;padding-right: 2em" data-bind="click:showSongList"class="btn default"><i class="fa fa-music"></i></button>
+            <button title='Split/Join Columns'  data-bind="click:splitColumns" class="btn default"><i class="fa fa-columns" aria-hidden="true"></i></button>
 
             <span data-bind="visible:loading" style="color:lightgrey">
                 <i class="fa fa-spinner fa-pulse"></i> Loading '<span data-bind="text:loading"></span>'
@@ -14,7 +14,7 @@
 
 
             <div style="float:right">
-                <button class="btn btn-default"  style="min-width:3em" data-bind="click:reduceFont, visible:textSize() > 1">
+                <button title='Smaller Text' class="btn btn-default"  style="min-width:3em" data-bind="click:reduceFont, visible:textSize() > 1">
                     <i class="fa fa-search-minus"></i>
                 </button>
                 <button class="btn btn-default"  style="min-width:3em" data-bind="visible:textSize() <= 1">
@@ -23,9 +23,8 @@
 
                 <button class="btn menu-label" style="min-width:3em"> <span data-bind="text:textSize"></span></button>
 
-
-
-                <button class="btn btn-default" data-bind="click:enlargeFont"><i class="fa fa-search-plus"></i></button>
+                <button title='Bigger Text' class="btn btn-default" data-bind="click:enlargeFont"><i class="fa fa-search-plus"></i></button>
+                <button title='Help' class="btn btn-default" style="padding-left: 2em" data-bind="click:help"><i class="fa fa-question-circle-o"></i></button>
             </div>
         </div>
         <div style="margin-top: 5ex">
@@ -49,12 +48,24 @@
             </div>
         </div>
     </div>
-    <div class="row" style="padding-top: 2ex" data-bind="visible:page()=='songs'">
+    <div style="padding-top: 2ex" data-bind="visible:page()=='songs'">
+        <div class="row" >
+            <div class="col-md-2">
+                <div data-bind="visible:!signedIn()">
+                    <a href="#" data-bind="click:showSigninForm"><i class="fa fa-user-circle" aria-hidden="true"></i> Sign In</a>
+                </div>
+                <div><a href="#" data-bind="visible:signedIn,click:newSet">New set</a> </div>
+            </div>
+            <div class="col-md-10">
+                <div data-bind="visible:signedIn" style="margin-bottom: 0"><a href="#" data-bind="click:newSong">New song</a> </div>
+            </div>
+        </div>
+        <div class="row" >
         <div class="col-md-2" style="border-right: 1px solid lightgrey" >
             <h3>Sets</h3>
             <ul class="linklist" data-bind="foreach:sets">
-                <li  data-bind="css:{linkhighlight: $root.set() == Value}">
-                    <a href="#" data-bind="click:$root.selectSet"><span data-bind="text:Name"></span></a> </li>
+                <li  data-bind="css:{linkhighlight: $root.selectedSet().id === id}">
+                    <a href="#" data-bind="click:$root.selectSet"><span data-bind="text:setname"></span></a> </li>
             </ul>
         </div>
         <div class="col-md-10">
@@ -64,6 +75,7 @@
                     ...
                 </div>
 
+
                 <h3>Songs</h3>
             </div>
 
@@ -72,35 +84,133 @@
                 </div>
                 <div class="col-md-3">
                     <ul class="linklist" data-bind="foreach:songs[0]()">
-                        <li  data-bind="css:{linkhighlight: $root.selectedSong() == Value}">
-                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:Name"></span></a>
+                        <li  data-bind="css:{linkhighlight: $root.selectedSong().id == id}">
+                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:title"></span></a>
+                            <span data-bind="visible:$root.username() != user">(<span data-bind="text:user"></span>)</span>
+                            <span data-bind="visible:$root.isAdmin() || $root.username() == user">
+                                <a href="#" data-bind="click:$root.editSong"><i class="fa fa-pencil" aria-hidden="true"></i></a> </span>
                         </li>
                     </ul>
                 </div>
                 <div class="col-md-3">
                     <ul class="linklist" data-bind="foreach:songs[1]()">
-                        <li  data-bind="css:{linkhighlight: $root.selectedSong() == Value}">
-                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:Name"></span></a>
+                        <li  data-bind="css:{linkhighlight: $root.selectedSong().id == id}">
+                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:title"></span></a>
+                            <span data-bind="visible:$root.username() != user">(<span data-bind="text:user"></span>)</span>
+                            <span data-bind="visible:$root.isAdmin() || $root.username() == user">
+                                <a href="#" data-bind="click:$root.editSong"><i class="fa fa-pencil" aria-hidden="true"></i></a> </span>
                         </li>
                     </ul>
                 </div>
                 <div class="col-md-3">
                     <ul class="linklist" data-bind="foreach:songs[2]()">
-                        <li  data-bind="css:{linkhighlight: $root.selectedSong() == Value}">
-                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:Name"></span></a>
+                        <li  data-bind="css:{linkhighlight: $root.selectedSong().id == id}">
+                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:title"></span></a>
+                            <span data-bind="visible:$root.username() != user">(<span data-bind="text:user"></span>)</span>
+                            <span data-bind="visible:$root.isAdmin() || $root.username() == user">
+                                <a href="#" data-bind="click:$root.editSong"><i class="fa fa-pencil" aria-hidden="true"></i></a> </span>
                         </li>
                     </ul>
                 </div>
 
                 <div class="col-md-3">
                     <ul class="linklist" data-bind="foreach:songs[3]()">
-                        <li  data-bind="css:{linkhighlight: $root.selectedSong() == Value}">
-                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:Name"></span></a>
+                        <li  data-bind="css:{linkhighlight: $root.selectedSong().id == id}">
+                            <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:title"></span></a>
+                            <span data-bind="visible:$root.username() != user">(<span data-bind="text:user"></span>)</span>
+                            <span data-bind="visible:$root.isAdmin() || $root.username() == user">
+                                <a href="#" data-bind="click:$root.editSong"><i class="fa fa-pencil" aria-hidden="true"></i></a> </span>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
+    </div>
+    <div class="row" style="padding-top: 2ex" data-bind="visible:page()=='help'">
+        <div class="col-md-12">
+            <h3>Notes:</h3>
+            <p><a href="#"  data-bind="click:home">Return to lyric page</a> </p>
+            <p>The purpose of this application is to display lyric sheets in a readable fashion as a reminder prompt for a performer at a song-circle or other event.
+            It is designed to be used on a Kindle Fire but can be viewed on any device.</p>
+            <p>This diagram explains the buttons on the menu bar of the man page.</p>
+            <p>
+                <img alt='Menu diagram' src="/application/assets/images/menu-help.jpg" class="img-responsive" >
+            </p>
+
+            <p>
+                Right now, the application only displays my own song collection. If there is interest in a multi-user
+                version I'll support uploading and modifying your own sets and songs.  If you'd like this please register on my songs site.
+                Indicate in the "Interests and Instruments" section that you'd like to put your own songs on the "Lyric Sheets" application. I'll
+                let you know when it is released.
+
+                <a href ="https://terrys-songs.net/user/register" target="_blank">Register on "Terry's Songs"</a>
+            </p>
+
+        </div>
+    </div>
+
+    <div class="row" style="padding-top: 2ex" data-bind="visible:page()=='upload'">
+        <div class="col-md-12">
+            <h3>Upload:</h3>
+
+        </div>
+    </div>
+
+    <div class="modal" id="signin-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form>
+                    <div class="modal-header">
+                        <button data-bind="visible:bootstrapVersion() !== 4" type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Sign in to Terry's Songs</h4>
+                        <button data-bind="visible:bootstrapVersion() === 4" type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="modal-body">
+                                <!-- div class="alert-danger" data-bind="visible:personForm.accountForm.serviceErrors, html: personForm.accountForm.serviceErrors"></div -->
+                                <div class="form-group" >
+                                    <label for="acct-username" class="control-label">
+                                        User name
+                                    </label>
+                                    <!-- div class="pnut-input-error" data-bind="visible:personForm.accountForm.usernameError">
+                                        <strong><translate params="code:'dir-error-no-username',translator:self"></translate></strong>
+                                        <br>
+                                        <translate params="code:'dir-error-invalid-username',translator:self"></translate>
+                                    </div -->
+
+                                    <input class="form-control" id="acct-username" data-bind="value:credentials.username"/>
+                                </div>
+
+                                <div class="form-group" >
+                                    <label for="acct-password" class="control-label">
+                                        Password
+                                    </label>
+                                    <!-- div class="pnut-input-error" data-bind="visible:personForm.accountForm.passwordError">
+                                        <strong><translate params="code:'dir-error-no-password',translator:self"></translate></strong>
+                                        <br>
+                                        <translate params="code:'dir-error-invalid-password',translator:self"></translate>
+                                    </div -->
+                                    <input class="form-control" id="acct-password" data-bind="value:credentials.password"/>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-bind="click:signIn">Sign in</button>
+                                <button type="button" class="btn btn-default btn-secondary"  data-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+
+
+                    </div>
+                    <!-- div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bind="click:signIn"><translate params="code:'label-ok',translator:self"></translate></button>
+                        <button type="button" class="btn btn-default btn-link"  data-dismiss="modal"><translate params="code:'label-close',translator:self"></translate></button>
+                    </div -->
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- filter menu modal -->
+
 </div>
 

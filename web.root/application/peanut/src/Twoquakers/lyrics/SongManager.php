@@ -9,36 +9,42 @@
 namespace TwoQuakers\lyrics;
 
 
+use Tops\sys\IUser;
 use Tops\sys\TNameValuePair;
 use Tops\sys\TPath;
+use Tops\sys\TUser;
+use TwoQuakers\lyrics\db\LyricsRepository;
 
 class SongManager
 {
+
+    private $repository;
+    private function getRepository() {
+        if (!isset($this->repository)) {
+            $this->repository = new LyricsRepository();
+        }
+        return $this->repository;
+    }
+
     /**
      * @return TNameValuePair[]
      */
-    public function getSetList()
+    public function getUserSets(string $username)
     {
-        $result = $this->dirToNameValueList('data/sets');
-        $all = TNameValuePair::Create('All','all');
-        array_unshift($result,$all);
+        $result = $this->getRepository()->getSongSets($username);
         return $result;
+    }
+
+    public function getDefaultSet(string $username) {
+
     }
 
     /**
      * @param $setName
      * @return TNameValuePair[];
      */
-    public function getSet($setName) {
-        if ($setName === 'all') {
-            return $this->dirToNameValueList('data/songs');
-        }
-        $path = TPath::fromFileRoot('data/sets/'.$setName);
-        $names = @file($path);
-        if ($names === false) {
-            return null;
-        }
-        return $this->fileNamesToNameValueList($names);
+    public function getSongsInSet($setId) {
+        return $this->getRepository()->getSongList($setId,$this->isAuthorized());
     }
 
     /**
@@ -46,19 +52,25 @@ class SongManager
      */
     public function getAllSongs()
     {
-        return $this->dirToNameValueList('data/songs');
+        return $this->getRepository()->getSongList();
     }
 
     /**
      * @return \stdClass[]
      */
-    public function getVerses($filename)
+    public function getVerses($id)
     {
-        $path = TPath::fromFileRoot('data/songs/'.$filename);
+        $song = $this->getRepository()->getSong($id);
+        if ((!$song) || empty($song->lyrics)) {
+            return null;
+        }
+        $text = explode("\n",$song->lyrics);
+
+/*        $path = TPath::fromFileRoot('data/songs/'.$filename);
         $text = @file($path);
         if ($text === false) {
             return null;
-        }
+        }*/
         $verses = [];
         $verse = new \stdClass();
         $verse->lines = [];
@@ -133,6 +145,13 @@ class SongManager
 
     public function getSongCount()
     {
-        return count($this->getAllSongs());
+        $authorized = $this->isAuthorized();
+        return $this->getRepository()->getSongCount($authorized);
     }
+
+    public function isAuthorized() {
+        $user = TUser::getCurrent();
+        return $user->isMemberOf('lyricist');
+    }
+
 }

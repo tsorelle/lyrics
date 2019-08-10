@@ -37,6 +37,8 @@ class CmsController
 
     const settingsLocation = 'application/config';
 
+    private $legalExt = ['txt','pdf','ico','jpeg','jpg','gif','png'];
+
     public static function Start($indexDir) {
         self::$instance = new CmsController();
         self::$instance->initialize($indexDir);
@@ -47,6 +49,11 @@ class CmsController
         return $this->contentFile;
     }
 
+    private function exitNotFound() {
+        header("HTTP/1.0 404 Not Found");
+        exit;
+    }
+
     public function initialize($indexDir)
     {
         global $_SERVER;
@@ -54,8 +61,8 @@ class CmsController
         if (strlen($uri) > 1 && substr($uri,-1) == '/') {
             // trailing slashes screw up relative paths later on
             $uri = substr($uri,0,strlen($uri) - 1);
-            header("Location: $uri");
-            exit;
+            // header("Location: $uri");
+           //  exit;
         }
 
         $fileRoot = str_replace('\\', '/', $indexDir) . '/';
@@ -65,20 +72,38 @@ class CmsController
         session_start();
         \Tops\sys\TSession::Initialize();
 
+        $args = null;
         if (strtolower($uri) == '/index.php') {
             $routePath = 'home';
         }
-        else {
-            $routePath = ViewModelManager::ExtractVmName($uri);
-            if (empty($routePath)) {
-                $routePath = 'home';
+        else if (@substr(strtolower($uri),0,13) == '/peanut/test/') {
+            $routePath = 'peanut/test';
+            $args = substr($uri,13);
+        }
+        else  {
+            $ext = pathinfo($uri, PATHINFO_EXTENSION);
+            if (!empty($ext)) {
+                $ext = strtolower($ext);
+                if (in_array($ext,$this->legalExt)) {
+                    $routePath = 'peanut/file';
+                    $args = $uri;
+                }
+                else {
+                    $this->exitNotFound();
+                }
+            }
+            else {
+                $routePath = ViewModelManager::ExtractVmName($uri);
+                if ($routePath !== false && empty($routePath)) {
+                    $routePath = 'home';
+                }
             }
         }
 
-        $this->route($fileRoot, $routePath,$settings->peanutUrl);
+        $this->route($fileRoot, $routePath,$args);// ,$settings->peanutUrl);
     }
 
-    private function route($fileRoot, $routePath, $peanutUrl)
+    private function route($fileRoot, $routePath, $args=null)
     {
         switch ($routePath) {
             case 'peanut/settings' :
@@ -90,6 +115,18 @@ class CmsController
                 $response = \Tops\services\ServiceFactory::Execute();
                 print json_encode($response);
                 exit;
+            case 'peanut/test' :
+                $this->runTest($args);
+                exit;
+            case 'peanut/file' :
+                $path = TPath::fromFileRoot($args);
+                $content = @file_get_contents($path);
+                if ($content) {
+                    print $content;
+                    exit;
+                }
+                $this->exitNotFound();
+
             default:
                 $content = false;
                 $pageContent = @file_get_contents($fileRoot . '/content/' . $routePath . '.html');
@@ -112,7 +149,8 @@ class CmsController
                 */
 
                 if ($content === false) {
-                    $content = ViewModelPageBuilder::BuildMessagePage('page-not-found');
+                    $this->exitNotFound();
+                    // $content = ViewModelPageBuilder::BuildMessagePage('page-not-found');
                 }
                 print $content;
                 exit;
@@ -145,5 +183,27 @@ class CmsController
 
     public function getScriptDebug() {
         return $this->scriptDebug;
+    }
+
+    /**
+     * @param $testname
+     */
+    private function runTest($args)
+    {
+        $args = explode('/',$args);
+        $testname = array_shift($args);
+
+        print "<pre>";
+        print "Running $testname\n";
+        if (empty($testname)) {
+            exit("No test name!");
+        }
+        $testname = strtoupper(substr($testname, 0, 1)) . substr($testname, 1);
+        $className = "\\PeanutTest\\scripts\\$testname" . 'Test';
+        $test = new $className();
+        $test->run($args);
+        print "\n</pre>";
+        print "<a href='/' target='_blank'>Home</a>";
+        exit;
     }
 }

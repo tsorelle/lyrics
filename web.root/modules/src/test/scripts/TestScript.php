@@ -49,11 +49,19 @@ abstract class TestScript
          return TUser::getCurrent()->isAdmin();
     }
 
-    public function run() {
+    protected $argCount = 0;
+    protected $args = [];
+
+    public function run($args = null) {
 
          try {
              if (!$this->authorized()) {
                  exit('User not authorized to run this script.');
+             }
+
+             if ($args) {
+                 $this->argCount = count($args);
+                 $this->args = $args;
              }
 
              print "Test run on ".TWebSite::GetDomain().', '.date(DATE_ISO8601)."\n";

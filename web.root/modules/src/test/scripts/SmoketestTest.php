@@ -16,6 +16,10 @@ class SmoketestTest extends TestScript
 
     public function execute()
     {
+        if ($this->argCount) {
+            print_r($this->args);
+        }
+
         $this->assert(true,'Testing works');
     }
 }

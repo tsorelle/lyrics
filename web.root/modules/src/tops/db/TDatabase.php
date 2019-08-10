@@ -56,7 +56,9 @@ class TDatabase
                         $params = new \stdClass();
                         $params->user = $settings['user'];
                         $params->pwd = $settings["pwd"];
-                        $params->dsn = "mysql:host=$server;dbname=$dbname";
+                        $charset = @$settings['charset'];
+                        $charset = $charset ? ";charset=$charset" : '';
+                        $params->dsn = "mysql:host=$server;dbname=$dbname$charset";
                         self::$dbconfig[$key] = $params;
                     }
                 }
