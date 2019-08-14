@@ -31,32 +31,28 @@ var Peanut;
             _this.selectedSong = ko.observable();
             _this.title = ko.observable('');
             _this.loading = ko.observable('');
-            _this.username = ko.observable('');
             _this.isAdmin = ko.observable(false);
+            _this.setForm = {
+                id: ko.observable(0),
+                setName: ko.observable(''),
+                nameError: ko.observable(''),
+                lookupValue: ko.observable(''),
+                selectedSongs: ko.observableArray(),
+                avaliableSongs: ko.observableArray(),
+                searchValue: ko.observable(),
+                user: ''
+            };
+            _this.searchSubscription = null;
+            _this.filterByUser = ko.observable(false);
             _this.credentials = {
-                username: ko.observable(''),
-                password: ko.observable(''),
+                username: ko.observable('Terry'),
+                password: ko.observable('De@dw00d'),
             };
             _this.signedIn = ko.observable(false);
+            _this.username = ko.observable('');
             _this.songIndex = 0;
             _this.songCount = 0;
             _this.maxSongColumnItems = 0;
-            _this.getSetSongs = function () {
-                var me = _this;
-                var set = _this.selectedSet();
-                var setId = set ? 0 : set.id;
-                var request = null;
-                me.services.executeService('GetSet', setId, function (serviceResponse) {
-                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
-                        var response = serviceResponse.Value;
-                    }
-                    else {
-                    }
-                })
-                    .fail(function () {
-                    var trace = me.services.getErrorInformation();
-                });
-            };
             _this.setSongIndex = function (value) {
                 _this.songIndex = value;
                 var current = _this.songList[_this.songIndex];
@@ -210,19 +206,6 @@ var Peanut;
                 _this.checkAuthentication(function () {
                 });
             };
-            _this.uploadLyrics = function (title) {
-                var me = _this;
-                me.services.executeService('UploadLyrics', title, function (serviceResponse) {
-                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
-                        var response = serviceResponse.Value;
-                    }
-                })
-                    .fail(function () {
-                    var trace = me.services.getErrorInformation();
-                })
-                    .always(function () {
-                });
-            };
             _this.showSigninForm = function () {
                 _this.onLogin = _this.loadSelectedSet;
                 jQuery("#signin-modal").modal('show');
@@ -235,11 +218,13 @@ var Peanut;
                 _this.onLogin = onLogin;
                 jQuery("#signin-modal").modal('show');
             };
+            _this.toggleUser = function () {
+                var filtering = !_this.filterByUser();
+                _this.filterByUser(filtering);
+                _this.clearSearch();
+            };
             _this.newSong = function () {
                 alert('new song');
-            };
-            _this.newSet = function () {
-                alert('new set');
             };
             _this.editSong = function () {
                 alert('edit song');
@@ -287,6 +272,153 @@ var Peanut;
                     });
                 }
             };
+            _this.newSet = function () {
+                _this.setForm.id(null);
+                _this.setForm.setName('');
+                _this.setForm.user = _this.username();
+                _this.initSetLists([]);
+                alert('new set');
+            };
+            _this.editSet = function (set) {
+                var me = _this;
+                me.setForm.id(set.id);
+                me.setForm.setName(set.setname);
+                me.setForm.nameError('');
+                me.setForm.user = set.user;
+                me.initSetLists(set.id);
+            };
+            _this.removeFromSetList = function (song) {
+                var me = _this;
+                me.availableSongs.push(song);
+                me.availableSongs = _.sortBy(me.availableSongs, ['title']);
+                var selected = _this.setForm.selectedSongs();
+                _.remove(selected, function (item) {
+                    return item.id == song.id;
+                });
+                me.setForm.selectedSongs(selected);
+                me.setForm.avaliableSongs(me.availableSongs);
+                me.setForm.searchValue('');
+            };
+            _this.addToSetList = function (song) {
+                var me = _this;
+                me.setForm.selectedSongs.push(song);
+                _.remove(me.availableSongs, function (item) {
+                    return item.id == song.id;
+                });
+                me.setForm.avaliableSongs(me.availableSongs);
+                me.setForm.searchValue('');
+            };
+            _this.moveSongUp = function (song) {
+                _this.moveSong(song, -1);
+            };
+            _this.moveSongDown = function (song) {
+                _this.moveSong(song, 1);
+            };
+            _this.moveSong = function (song, offset) {
+                var list = _this.setForm.selectedSongs();
+                var oldI = _.findIndex(list, { id: song.id });
+                var newI = oldI + offset;
+                if (newI < 0) {
+                    newI = list.length - 1;
+                }
+                else if (newI == list.length) {
+                    newI = 0;
+                }
+                var swapped = list[newI];
+                list[newI] = song;
+                list[oldI] = swapped;
+                _this.setForm.selectedSongs(list);
+            };
+            _this.clearSearch = function () {
+                if (_this.searchSubscription !== null) {
+                    _this.searchSubscription.dispose();
+                    _this.searchSubscription = null;
+                }
+                _this.setForm.searchValue('');
+                var available = _this.getAvailableSongsList();
+                _this.setForm.avaliableSongs(available);
+                _this.searchSubscription = _this.setForm.searchValue.subscribe(_this.filterAvailable);
+            };
+            _this.filterAvailable = function (value) {
+                value = value.trim();
+                if (value) {
+                    var songs = _this.setForm.avaliableSongs();
+                    var list = _.filter(songs, function (item) {
+                        return item.title.toLowerCase().indexOf(value.toLowerCase()) == 0;
+                    });
+                    _this.setForm.avaliableSongs(list);
+                }
+                else {
+                    var available = _this.getAvailableSongsList();
+                    _this.setForm.avaliableSongs(available);
+                }
+            };
+            _this.getAvailableSongsList = function () {
+                var me = _this;
+                if (me.filterByUser()) {
+                    var user_1 = me.username();
+                    return _.filter(_this.availableSongs, function (item) {
+                        return (item.user == user_1);
+                    });
+                }
+                return _this.availableSongs;
+            };
+            _this.saveSetList = function () {
+                var me = _this;
+                var request = {
+                    setId: _this.setForm.id(),
+                    songs: [],
+                    setName: _this.setForm.setName().trim(),
+                    user: _this.setForm.user
+                };
+                if (!request.setId) {
+                    request.setId = 0;
+                }
+                if (!request.setName) {
+                    _this.setForm.nameError('A name for the set is required.');
+                    return;
+                }
+                var selected = _this.setForm.selectedSongs();
+                for (var i = 0; i < selected.length; i++) {
+                    request.songs.push({ songId: selected[i].id, sequence: i });
+                }
+                _this.setForm.nameError('');
+                me.services.executeService('UpdateSongSet', request, function (serviceResponse) {
+                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                        var response = serviceResponse.Value;
+                        var setList = me.sets();
+                        me.sets([]);
+                        var set = null;
+                        if (request.setId > 0) {
+                            var setIndex = _.findIndex(setList, { id: request.setId });
+                            set = setList[setIndex];
+                            set.setname = request.setName;
+                            setList[setIndex] = set;
+                        }
+                        else {
+                            set = {
+                                id: response.setId,
+                                setname: request.setName,
+                                user: request.user
+                            };
+                            setList.push(set);
+                        }
+                        me.sets(setList);
+                        me.selectedSet(set);
+                        me.loadSongList(response.songs);
+                    }
+                })
+                    .fail(function () {
+                    var trace = me.services.getErrorInformation();
+                    if (1) { }
+                })
+                    .always(function () {
+                    me.page('songs');
+                });
+            };
+            _this.cancelSetEdit = function () {
+                _this.page('songs');
+            };
             return _this;
         }
         HomeViewModel.prototype.init = function (successFunction) {
@@ -319,6 +451,34 @@ var Peanut;
                 });
             });
         };
+        HomeViewModel.prototype.initSetLists = function (setId) {
+            var me = this;
+            me.setForm.selectedSongs([]);
+            me.setForm.avaliableSongs([]);
+            me.services.executeService('GetSongLists', setId, function (serviceResponse) {
+                if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                    var response = serviceResponse.Value;
+                    var selected = [];
+                    if (setId) {
+                        me.availableSongs = _.differenceBy(response.availableSongs, response.setSongs, 'id');
+                        me.setForm.selectedSongs(response.setSongs);
+                    }
+                    else {
+                        me.availableSongs = response.availableSongs;
+                        me.setForm.selectedSongs([]);
+                    }
+                    me.setForm.avaliableSongs(me.availableSongs);
+                    me.clearSearch();
+                    me.page('editset');
+                }
+                else {
+                }
+            })
+                .fail(function () {
+                var trace = me.services.getErrorInformation();
+            });
+        };
+        ;
         return HomeViewModel;
     }(Peanut.ViewModelBase));
     Peanut.HomeViewModel = HomeViewModel;

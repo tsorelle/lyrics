@@ -93,7 +93,36 @@ class SongManager
         return $verses;
     }
 
+    public function checkUniqueSetName($setName, $user, $setId)
+    {
+        if (!$setId) {
+            $setId = 0;
+        }
+        $count = $this->getRepository()->countUniqueSetNames($setName, $user, $setId);
+        return empty($count);
+    }
+
+
     const lcwords = ['the','of','and','a','on','in'];
+
+    public function createSet($setName, string $username)
+    {
+        return $this->getRepository()->newSongSet($setName,$username);
+    }
+
+    public function updateSetSongs($setId,$songIds) {
+        $this->getRepository()->updateSetSongs($setId,$songIds);
+    }
+
+    public function changeSetName($setId,$setName) {
+        $this->getRepository()->changeSetName($setId,$setName);
+    }
+
+    public function updateSetName($setId, $setName)
+    {
+        $this->getRepository()->updateSetName($setId,$setName);
+    }
+
     public function toTitle($filename) {
         $words = explode('-',
             str_replace('.txt','',

@@ -4,3 +4,4 @@
 // todo: new song
 // todo: new set
 // todo: remove set
+// todo: update help page.

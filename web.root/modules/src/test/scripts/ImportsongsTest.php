@@ -64,12 +64,13 @@ class ImportsongsTest extends TestScript
     {
         print "Importing $setFile\n";
         $songs = file($this->songpath.'/'.$setFile);
+        $i = 0;
         foreach($songs as $songname) {
             $title = $this->toTitle($songname);
             $song = $this->repository->getSongByTitle($title);
             if ($song) {
                 print "Adding $song->title to set $setFile\n";
-                $this->repository->addSongToSet($song->id,$setId);
+                $this->repository->addSongToSet($song->id,$setId,$i);
             }
             else {
                 print "Song not found: $title\n";

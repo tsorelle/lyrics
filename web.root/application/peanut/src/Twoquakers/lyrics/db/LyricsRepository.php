@@ -46,10 +46,12 @@ class LyricsRepository
         $sql = self::songListQuery;
         $where = '';
 
+        $orderBy = ' ORDER BY s.title';
         if (is_numeric($setId)) {
             if ($setId > 0) {
                 $sql .= ' JOIN lyrics_setsongs ss ON ss.songId = s.id ';
                 $where = 'ss.setId = ? ';
+                $orderBy = ' ORDER BY ss.sequence';
             }
             else {
                 $params = [];
@@ -62,7 +64,7 @@ class LyricsRepository
             }
         }
         else {
-            // setId is username
+            // virtual set by username
             $where = 's.user = ?';
         }
 
@@ -70,7 +72,7 @@ class LyricsRepository
             $sql .= " WHERE $where ";
         }
 
-        $sql.= " ORDER BY s.title";
+        $sql.= $orderBy;
         $query = new TQuery();
         $stmt = $query->executeStatement($sql,$params);
         return $stmt->fetchAll(\PDO::FETCH_OBJ);
@@ -80,6 +82,13 @@ class LyricsRepository
         $sql = self::lyricFields . 'WHERE s.user = ?';
         $stmt = $this->makeStatement($sql,[$username],self::songClassName);
         return $stmt->fetchAll();
+    }
+
+
+    public function getSongSet($setId) {
+        $query = new TQuery();
+        $sql = 'SELECT id, setname, user FROM lyrics_sets WHERE id = ?';
+
     }
 
     public function getSongSets($username) {
@@ -133,14 +142,23 @@ class LyricsRepository
         $stmt = $query->executeStatement($sql,[$songId]);
     }
 
-    public function updateSongSet($setId,$songIds) {
+    /**
+     * @param $setId
+     * @param $songs
+     * @throws \Exception
+     */
+    public function updateSetSongs($setId,$songs) {
         $query = new TQuery();
         $sql = 'DELETE FROM lyrics_setsongs WHERE setId = ?';
-        $stmt = $query->executeStatement($sql,[$setId]);
+        $query->execute($sql,[$setId]);
 
-        foreach ($songIds as $songId) {
-            $sql = 'INSERT INTO lyrics_setsongs (songId,setId) VALUE (?,?)';
-            $stmt = $query->executeStatement($sql,[$songId,$setId]);
+        foreach ($songs as $song) {
+            if (empty($song->songId)) {
+                throw new \Exception('No song id in list');
+            }
+            $sequence = @$song->sequence ?? 0;
+            $sql = 'INSERT INTO lyrics_setsongs (songId,setId,sequence) VALUES (?,?,?)';
+            $stmt = $query->executeStatement($sql,[$song->songId,$setId,$sequence]);
         }
     }
 
@@ -161,11 +179,31 @@ class LyricsRepository
         return $stmt->fetch();
     }
 
-    public function addSongToSet($songId, $setId)
+    public function addSongToSet($songId, $setId,$sequence)
     {
         $query = new TQuery();
-        $sql = 'INSERT INTO lyrics_setsongs (songId,setId) VALUES (?,?)';
-        $stmt = $query->executeStatement($sql,[$songId,$setId]);
+        $sql = 'INSERT INTO lyrics_setsongs (songId,setId,sequence) VALUES (?,?,?)';
+        return $query->execute($sql,[$songId,$setId,$sequence]);
     }
 
+    public function countUniqueSetNames($setName, $user, int $setId)
+    {
+        $query = new TQuery();
+        $sql = 'SELECT COUNT(*) FROM `lyrics_sets` WHERE setname = ? AND user = ? AND id <> ?';
+        $stmt = $query->executeStatement($sql,[$setName,$user,$setId]);
+        return $stmt->fetchColumn();
+    }
+
+    public function newSongSet($setName, string $username)
+    {
+        $query = new TQuery();
+        $sql = 'insert into lyrics_sets (setname, `user`) values  (?,?)';
+        return $query->insert($sql,[$setName,$username]);
+    }
+
+    public function changeSetName($setId,$setname) {
+        $query = new TQuery();
+        $sql = 'UPDATE lyrics_sets SET setname = ?  WHERE id = ?;';
+        $query->execute($sql,[$setname, $setId]);
+    }
 }

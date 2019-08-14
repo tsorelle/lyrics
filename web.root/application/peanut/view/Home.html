@@ -1,3 +1,4 @@
+
 <div id="home-load-message"><span class="fa fa-spinner fa-pulse fa-2x" style="color:lightgrey"></span></div>
 <div id="home-view-container" style="display: none">
     <div class="row" data-bind="visible:page()=='lyrics'">
@@ -5,7 +6,7 @@
             <button title='Previous in set' data-bind="click:prevSong" class="btn default"><i class="fa fa-backward"></i></button>
             <button class="btn menu-label"><span data-bind="text:title"></span></button>
             <button title='Next in set' data-bind="click:nextSong" class="btn default"><i class="fa fa-forward"></i></button>
-            <button title='Song list' style="padding-left:2em;padding-right: 2em" data-bind="click:showSongList"class="btn default"><i class="fa fa-music"></i></button>
+            <button title='Song list' style="padding-left:2em;padding-right: 2em" data-bind="click:showSongList" class="btn default"><i class="fa fa-music"></i></button>
             <button title='Split/Join Columns'  data-bind="click:splitColumns" class="btn default"><i class="fa fa-columns" aria-hidden="true"></i></button>
 
             <span data-bind="visible:loading" style="color:lightgrey">
@@ -65,7 +66,12 @@
             <h3>Sets</h3>
             <ul class="linklist" data-bind="foreach:sets">
                 <li  data-bind="css:{linkhighlight: $root.selectedSet().id === id}">
-                    <a href="#" data-bind="click:$root.selectSet"><span data-bind="text:setname"></span></a> </li>
+                    <a href="#" data-bind="click:$root.selectSet"><span data-bind="text:setname"></span></a>
+                    <span data-bind="visible:$root.signedIn() && id > 0">
+                        &nbsp;<a href="#"  data-bind="click:$root.editSet"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+                    </span>
+                </li>
+
             </ul>
         </div>
         <div class="col-md-10">
@@ -150,12 +156,72 @@
         </div>
     </div>
 
-    <div class="row" style="padding-top: 2ex" data-bind="visible:page()=='upload'">
-        <div class="col-md-12">
-            <h3>Upload:</h3>
+    <div data-bind="visible:page()=='editset'">
+        <form>
+            <div class="row" style="padding-top: 2ex" >
+                <div class="col-md-6">
+                    <h3>Build a set</h3>
+                        <div class="form-group">
+                            <!-- div data-bind="visible:setForm.id() !== null">
+                                <span data-bind="text:setForm.setName" style="font-weight: bold"></span>
+                            </div-->
+                            <div> <!-- data-bind="visible:setForm.id() == null" -->
+                                <label class="control-label" for="setname" style="font-weight: bold">Set name</label>
+                                <span class="error" data-bind="visible: setForm.nameError">
+                                    :</span> <span  class="error"  data-bind="text:setForm.nameError" ></span>
+                                <input type="text" class="form-control" id="setname" data-bind="value: setForm.setName" />
+                            </div>
+                        </div>
+                </div>
+                <!-- div class="col-md-6">
+                    <button type="button" class="btn btn-primary" data-bind="click:saveSetList" style="margin-right: 3rem">Save</button>
+                    <button type="button" class="btn btn-link" data-bind="click:cancelSetEdit">Cancel</button>
 
-        </div>
-    </div>
+                </div -->
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <label style="font-weight: bold; margin-bottom: 0px">Selected Songs</label>
+                    <div>
+                        <button type="button" class="btn btn-link" data-bind="click:saveSetList" style="font-weight: bold; margin-right: 3rem">Save</button>
+                        <button type="button" class="btn btn-link" data-bind="click:cancelSetEdit">Cancel</button>
+                    </div>
+                    <div>
+                        <ul class="linklist" data-bind="foreach:setForm.selectedSongs">
+                            <li>
+                                <a href="#" data-bind="click:$root.moveSongUp"><i class="fa fa-arrow-up" aria-hidden="true"></i></a>&nbsp;
+                                <a href="#" data-bind="click:$root.moveSongDown"><i class="fa fa-arrow-down" aria-hidden="true"></i></a>
+                                &nbsp;
+                                <a href="#" data-bind="click:$root.removeFromSetList"><span data-bind="text:title"></span> <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <div class="col-md-8">
+                    <label  style="font-weight: bold">Available Songs</label>
+                    <div class="form-group" style="margin-bottom: 0">
+                        <input type="text" class="form-control" placeholder="Search" id="search" data-bind="textInput: setForm.searchValue" />
+                    </div>
+                    <div>
+                        <a href="#" data-bind="click:toggleUser">
+                            <span data-bind="visible:filterByUser">Show all songs</span>
+                            <span data-bind="visible:!filterByUser()">Show my songs only</span>
+                        </a>
+                    </div>
+                    <div>
+                        <ul class="linklist" data-bind="foreach:setForm.avaliableSongs" style="padding-bottom: 2rem">
+                            <li>
+                                 <a href="#" data-bind="click:$root.addToSetList"><i class="fa fa-angle-double-left" aria-hidden="true"></i> <span data-bind="text:title"></span></a>
+                                <span data-bind="visible:$root.username() != user">(<span data-bind="text:user"></span>)</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div> <!-- end page -->
 
     <div class="modal" id="signin-modal">
         <div class="modal-dialog">
