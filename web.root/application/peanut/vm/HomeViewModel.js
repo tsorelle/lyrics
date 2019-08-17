@@ -42,6 +42,16 @@ var Peanut;
                 searchValue: ko.observable(),
                 user: ''
             };
+            _this.songForm = {
+                id: ko.observable(0),
+                title: ko.observable(''),
+                lyrics: ko.observable(''),
+                public: ko.observable(false),
+                errorMessage: ko.observable(''),
+                currentSetName: ko.observable(''),
+                user: ko.observable(''),
+                includeInSet: ko.observable(false)
+            };
             _this.searchSubscription = null;
             _this.filterByUser = ko.observable(false);
             _this.credentials = {
@@ -139,7 +149,8 @@ var Peanut;
                     me.loading('');
                 });
             };
-            _this.loadSongList = function (songs) {
+            _this.loadSongList = function (songs, songIndex) {
+                if (songIndex === void 0) { songIndex = 0; }
                 _this.songList = songs;
                 _this.songCount = songs.length;
                 for (var i = 0; i < 4; i++) {
@@ -156,7 +167,7 @@ var Peanut;
                     }
                 }
                 _this.songs[columnIndex](column);
-                _this.setSongIndex(0);
+                _this.setSongIndex(songIndex);
             };
             _this.showSongList = function () {
                 _this.page('songs');
@@ -224,10 +235,40 @@ var Peanut;
                 _this.clearSearch();
             };
             _this.newSong = function () {
-                alert('new song');
+                _this.songForm.id(0);
+                _this.songForm.title('');
+                _this.songForm.lyrics('');
+                _this.songForm.public(false);
+                _this.songForm.errorMessage('');
+                _this.songForm.user(_this.username());
+                var currentSetName = _this.selectedSet().id > 0 ? _this.selectedSet().setname : '';
+                _this.songForm.currentSetName(currentSetName);
+                _this.songForm.includeInSet(currentSetName != '');
+                _this.page('editsong');
             };
-            _this.editSong = function () {
-                alert('edit song');
+            _this.editSong = function (song) {
+                var me = _this;
+                me.songForm.id(song.id);
+                me.songForm.title(song.title);
+                me.songForm.errorMessage('');
+                _this.songForm.currentSetName('');
+                _this.songForm.includeInSet(false);
+                me.services.executeService('GetSongForEdit', song.id, function (serviceResponse) {
+                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                        var response = serviceResponse.Value;
+                        me.songForm.lyrics(response.lyrics);
+                        me.songForm.public(response.public != 0);
+                        me.songForm.user(response.user);
+                        me.songIndex = -1;
+                        me.page('editsong');
+                    }
+                })
+                    .fail(function () {
+                    var trace = me.services.getErrorInformation();
+                    if (1) { }
+                })
+                    .always(function () {
+                });
             };
             _this.signIn = function () {
                 var me = _this;
@@ -277,7 +318,6 @@ var Peanut;
                 _this.setForm.setName('');
                 _this.setForm.user = _this.username();
                 _this.initSetLists([]);
-                alert('new set');
             };
             _this.editSet = function (set) {
                 var me = _this;
@@ -419,6 +459,99 @@ var Peanut;
             _this.cancelSetEdit = function () {
                 _this.page('songs');
             };
+            _this.saveSong = function () {
+                var test = _this.songForm.lyrics();
+                var me = _this;
+                var request = {
+                    id: me.songForm.id(),
+                    user: me.songForm.user(),
+                    title: me.songForm.title().trim(),
+                    public: me.songForm.public() ? 1 : 0,
+                    lyrics: me.songForm.lyrics().trim(),
+                    setId: me.songForm.includeInSet() ? me.selectedSet().id : 0,
+                };
+                if (!request.title) {
+                    me.songForm.errorMessage('Title is required');
+                    return;
+                }
+                if (!request.lyrics) {
+                    me.songForm.errorMessage('Add some lyrics please.');
+                    return;
+                }
+                me.services.executeService('UpdateSong', request, function (serviceResponse) {
+                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                        var response = serviceResponse.Value;
+                        var songIndex = _.findIndex(response.songs, { id: response.id });
+                        if (songIndex < 0) {
+                            songIndex = 0;
+                        }
+                        me.loadSongList(response.songs, songIndex);
+                        me.songIndex = -1;
+                    }
+                })
+                    .fail(function () {
+                    var trace = me.services.getErrorInformation();
+                    if (1) { }
+                })
+                    .always(function () {
+                    me.page('songs');
+                });
+            };
+            _this.cancelSongEdit = function () {
+                _this.page('songs');
+            };
+            _this.deleteSet = function () {
+                jQuery("#confirm-delete-set-modal").modal('show');
+            };
+            _this.doDeleteSet = function () {
+                var me = _this;
+                jQuery("#confirm-delete-set-modal").modal('hide');
+                var setId = me.setForm.id();
+                me.services.executeService('RemoveSet', setId, function (serviceResponse) {
+                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                        var invalidateSelected = me.selectedSet().id == setId;
+                        var setList = me.sets();
+                        _.remove(setList, function (item) {
+                            item.id == setId;
+                        });
+                        if (me.selectedSet().id == setId) {
+                            me.selectedSet(setList[0]);
+                        }
+                        me.sets(setList);
+                    }
+                })
+                    .fail(function () {
+                    var trace = me.services.getErrorInformation();
+                    if (1) { }
+                })
+                    .always(function () {
+                    me.page('songs');
+                });
+            };
+            _this.deleteSong = function () {
+                jQuery("#confirm-delete-song-modal").modal('show');
+            };
+            _this.doDeleteSong = function () {
+                var me = _this;
+                jQuery("#confirm-delete-song-modal").modal('hide');
+                var songId = me.songForm.id();
+                me.services.executeService('RemoveSong', songId, function (serviceResponse) {
+                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                        var songList = _.concat(me.songs[0](), me.songs[1](), me.songs[2](), me.songs[3]());
+                        _.remove(songList, function (item) {
+                            return item.id == songId;
+                        });
+                        me.loadSongList(songList);
+                    }
+                })
+                    .fail(function () {
+                    var trace = me.services.getErrorInformation();
+                    if (1) { }
+                })
+                    .always(function () {
+                    me.page('songs');
+                });
+            };
             return _this;
         }
         HomeViewModel.prototype.init = function (successFunction) {
@@ -430,24 +563,26 @@ var Peanut;
             me.application.loadResources([
                 '@lib:lodash'
             ], function () {
-                var request = null;
-                me.services.executeService('GetSongs', request, function (serviceResponse) {
-                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
-                        var response = serviceResponse.Value;
-                        me.maxSongColumnItems = Math.floor(response.catalogSize / 4);
-                        me.username('quest');
-                        me.sets(response.sets);
-                        me.selectedSet(response.set);
-                        _this.loadSongList(response.songs);
-                        me.setVerses(response.verses);
-                    }
-                })
-                    .fail(function () {
-                    var trace = me.services.getErrorInformation();
-                })
-                    .always(function () {
-                    me.bindDefaultSection();
-                    successFunction();
+                me.application.registerComponents('@pnut/modal-confirm', function () {
+                    var request = null;
+                    me.services.executeService('GetSongs', request, function (serviceResponse) {
+                        if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                            var response = serviceResponse.Value;
+                            me.maxSongColumnItems = Math.floor(response.catalogSize / 4);
+                            me.username('quest');
+                            me.sets(response.sets);
+                            me.selectedSet(response.set);
+                            _this.loadSongList(response.songs);
+                            me.setVerses(response.verses);
+                        }
+                    })
+                        .fail(function () {
+                        var trace = me.services.getErrorInformation();
+                    })
+                        .always(function () {
+                        me.bindDefaultSection();
+                        successFunction();
+                    });
                 });
             });
         };

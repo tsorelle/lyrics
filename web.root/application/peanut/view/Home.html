@@ -185,6 +185,7 @@
                     <div>
                         <button type="button" class="btn btn-link" data-bind="click:saveSetList" style="font-weight: bold; margin-right: 3rem">Save</button>
                         <button type="button" class="btn btn-link" data-bind="click:cancelSetEdit">Cancel</button>
+                        <button type="button" class="btn btn-secondar pull-right" data-bind="click:deleteSet">Delete set</button>
                     </div>
                     <div>
                         <ul class="linklist" data-bind="foreach:setForm.selectedSongs">
@@ -222,6 +223,42 @@
             </div>
         </form>
     </div> <!-- end page -->
+
+    <div data-bind="visible:page()=='editsong'">
+        <form>
+            <div class="row" style="padding-top: 2ex" >
+                <div class="col-md-12">
+                    <h3>Song</h3>
+                    <div data-bind="visible: songForm.errorMessage">
+                        <span  class="error"  data-bind="text:songForm.errorMessage" ></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="songTitle" style="font-weight: bold">Song Title</label>
+                        <input type="text" class="form-control" id="songTitle" data-bind="value:songForm.title" />
+                    </div>
+                    <div class="form-group">
+                        <label for="songlyrics">Lyrics:</label>
+                        <textarea id='songlyrics' class="form-control" rows="5" data-bind="value:songForm.lyrics"></textarea>
+                    </div>
+
+                    <div id='public' class="checkbox">
+                        <label><input type="checkbox" data-bind="checked:public"> Public domain?</label>
+                    </div>
+                    <div id='include' class="checkbox" data-bind="visible:songForm.currentSetName">
+                        <label><input type="checkbox" data-bind="checked:songForm.includeInSet"> Include in set: <span data-bind="text:songForm.currentSetName"></span>?</label>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary" data-bind="click:saveSong" style="margin-right: 3rem">Save</button>
+                        <button type="button" class="btn btn-link" data-bind="click:cancelSongEdit">Cancel</button>
+                        <button type="button" class="btn btn-secondary pull-right" data-bind="click:deleteSong" style="margin-right: 3rem">Delete</button>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div> <!-- end song form -->
+
+
 
     <div class="modal" id="signin-modal">
         <div class="modal-dialog">
@@ -277,6 +314,8 @@
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- filter menu modal -->
+    <modal-confirm params="id:'confirm-delete-song-modal',headerText: 'Please confirm DELETE', bodyText: 'Delete this song?', confirmClick: doDeleteSong, translator:self"></modal-confirm>
+    <modal-confirm params="id:'confirm-delete-set-modal',headerText: 'Please confirm DELETE', bodyText: 'Delete this set?', confirmClick: doDeleteSet, translator:self"></modal-confirm>
 
 </div>
 

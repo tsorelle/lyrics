@@ -34,10 +34,11 @@ class LyricsRepository
      * @param $id
      * @return Song
      */
-    public function getSong($id) {
-        $sql = self::lyricFields . ' WHERE s.id = ?';
-        $stmt = $this->makeStatement($sql,[$id],self::songClassName);
-        return $stmt->fetch();
+    public function getSong($songId) {
+        $sql = 'SELECT id, title, public, `user`, lyrics FROM lyrics_songs WHERE id = ?';
+        $query = new TQuery();
+        $stmt= $query->executeStatement($sql,[$songId]);
+        return $stmt->fetch(\PDO::FETCH_OBJ);
     }
 
 
@@ -129,17 +130,17 @@ class LyricsRepository
     public function removeSet($setId) {
         $query = new TQuery();
         $sql = 'DELETE FROM lyrics_setsongs WHERE setId = ?';
-        $stmt = $query->executeStatement($sql,[$setId]);
+        $query->execute($sql,[$setId]);
         $sql = 'DELETE FROM lyrics_sets WHERE id = ?';
-        $stmt = $query->executeStatement($sql,[$setId]);
+        return $query->execute($sql,[$setId]);
     }
 
     public function removeSong($songId) {
         $query = new TQuery();
         $sql = 'DELETE FROM lyrics_setsongs WHERE songId = ?';
-        $stmt = $query->executeStatement($sql,[$songId]);
+        $query->execute($sql,[$songId]);
         $sql = 'DELETE FROM lyrics_songs WHERE id = ?';
-        $stmt = $query->executeStatement($sql,[$songId]);
+        return $query->execute($sql,[$songId]);
     }
 
     /**
@@ -186,6 +187,14 @@ class LyricsRepository
         return $query->execute($sql,[$songId,$setId,$sequence]);
     }
 
+    public function appendSong($setId, $songId) {
+        $sql = 'SELECT MAX(sequence) FROM lyrics_setsongs WHERE setId = ?';
+        $query = new TQuery();
+        $sequence = $query->getValue($sql,[$setId]);
+        $sequence = $sequence === false || $sequence === null ? 0 : $sequence;
+        $this->addSongToSet($songId, $setId, $sequence + 1);
+    }
+
     public function countUniqueSetNames($setName, $user, int $setId)
     {
         $query = new TQuery();
@@ -205,5 +214,19 @@ class LyricsRepository
         $query = new TQuery();
         $sql = 'UPDATE lyrics_sets SET setname = ?  WHERE id = ?;';
         $query->execute($sql,[$setname, $setId]);
+    }
+
+    public function insertSong($title, $public, $user, $lyrics)
+    {
+        $sql = 'INSERT INTO lyrics_songs (title, public, user, lyrics) VALUES (?,?,?,?)';
+        $query = new TQuery();
+        return $query->insert($sql,[$title,$public,$user,$lyrics]);
+    }
+
+    public function updateSong($id, $title, $public, $user, $lyrics)
+    {
+        $sql = 'UPDATE lyrics_songs SET title = ?, public = ?, user = ?, lyrics = ? where id = ?';
+        $query = new TQuery();
+        return $query->execute($sql,[$title,$public,$user,$lyrics,$id]);
     }
 }

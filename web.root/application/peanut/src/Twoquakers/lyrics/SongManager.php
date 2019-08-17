@@ -9,6 +9,7 @@
 namespace TwoQuakers\lyrics;
 
 
+use Tops\db\TQuery;
 use Tops\sys\IUser;
 use Tops\sys\TNameValuePair;
 use Tops\sys\TPath;
@@ -118,9 +119,33 @@ class SongManager
         $this->getRepository()->changeSetName($setId,$setName);
     }
 
-    public function updateSetName($setId, $setName)
+    public function getSong($songId)
     {
-        $this->getRepository()->updateSetName($setId,$setName);
+        return $this->getRepository()->getSong($songId);
+    }
+
+    public function updateSong($id,$title,$public,$user,$lyrics) {
+        $this->getRepository()->updateSong($id,$title,$public,$user,$lyrics);
+    }
+
+    public function insertSong($title,$public,$user,$lyrics,$setId=0)
+    {
+        $repository = $this->getRepository();
+        $songId = $repository->insertSong($title,$public,$user,$lyrics);
+        if ($setId > 0) {
+            $repository->appendSong($setId, $songId);
+        }
+        return $songId;
+    }
+
+    public function removeSong($songId)
+    {
+        $this->getRepository()->removeSong($songId);
+    }
+
+    public function removeSet($setId)
+    {
+        $this->getRepository()->removeSet($setId);
     }
 
     public function toTitle($filename) {

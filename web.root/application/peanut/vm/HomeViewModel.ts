@@ -23,6 +23,21 @@ namespace Peanut {
         user: string;
     }
 
+    interface ISong extends ISongInfo {
+        lyrics: string;
+        public: any;
+    }
+
+    interface ISongUpdateRequest extends ISong {
+        setId: any;
+    }
+
+    interface ISongUpdateResponse {
+        id: any;
+        songs: ISongInfo[];
+    }
+
+
     interface IGetSongsResponse extends IGetVersesResponse {
         set: ISongSet;
         sets: ISongSet[];
@@ -98,11 +113,29 @@ namespace Peanut {
             user: ''
         };
 
+        songForm = {
+            id: ko.observable(0),
+            title: ko.observable(''),
+            lyrics: ko.observable(''),
+            public: ko.observable(false),
+            errorMessage: ko.observable(''),
+            currentSetName: ko.observable(''),
+            user: ko.observable(''),
+            includeInSet : ko.observable(false)
+        };
+
         availableSongs: ISongInfo[];
         searchSubscription : any = null;
         filterByUser = ko.observable(false);
 
         verseColumn : any; //ko.observable('col-md-6');
+
+/*
+        credentials = {
+            username: ko.observable(''),
+            password: ko.observable(''),
+        };
+*/
 
         credentials = {
             // todo: clear test values
@@ -128,30 +161,31 @@ namespace Peanut {
                 // Load libraries and core components
                 '@lib:lodash'
             ], () => {
-                let request = null;
-                me.services.executeService('GetSongs', request, (serviceResponse: IServiceResponse) => {
-                    if (serviceResponse.Result == Peanut.serviceResultSuccess) {
-                        let response = <IGetSongsResponse>serviceResponse.Value;
-                        me.maxSongColumnItems = Math.floor(response.catalogSize / 4);
-                        me.username('quest');
-                        // me.isAdmin(!!response.isAdmin);
+                me.application.registerComponents('@pnut/modal-confirm', () => {
+                    let request = null;
+                    me.services.executeService('GetSongs', request, (serviceResponse: IServiceResponse) => {
+                        if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                            let response = <IGetSongsResponse>serviceResponse.Value;
+                            me.maxSongColumnItems = Math.floor(response.catalogSize / 4);
+                            me.username('quest');
+                            // me.isAdmin(!!response.isAdmin);
 
-                        me.sets(response.sets);
-                        me.selectedSet(response.set);
-                        this.loadSongList(response.songs);
-                        me.setVerses(response.verses);
-                    }
-                })
-                    .fail(() => {
-                        let trace = me.services.getErrorInformation();
+                            me.sets(response.sets);
+                            me.selectedSet(response.set);
+                            this.loadSongList(response.songs);
+                            me.setVerses(response.verses);
+                        }
                     })
-                    .always(() => {
-                        me.bindDefaultSection();
-                        successFunction();
-                    });
+                        .fail(() => {
+                            let trace = me.services.getErrorInformation();
+                        })
+                        .always(() => {
+                            me.bindDefaultSection();
+                            successFunction();
+                        });
 
+                });
             });
-
         }
 
         setSongIndex = (value: number) => {
@@ -255,7 +289,7 @@ namespace Peanut {
 
         };
 
-        loadSongList = (songs: ISongInfo[]) => {
+        loadSongList = (songs: ISongInfo[],songIndex=0) => {
             this.songList = songs;
             this.songCount = songs.length;
             for (let i = 0; i < 4; i++) {
@@ -273,7 +307,7 @@ namespace Peanut {
                 }
             }
             this.songs[columnIndex](column);
-            this.setSongIndex(0);
+            this.setSongIndex(songIndex);
         };
 
         showSongList = () => {
@@ -356,11 +390,43 @@ namespace Peanut {
 
         };
         newSong = () => {
-            alert('new song');
+            this.songForm.id(0);
+            this.songForm.title('');
+            this.songForm.lyrics('');
+            this.songForm.public(false);
+            this.songForm.errorMessage('');
+            this.songForm.user(this.username());
+            let currentSetName = this.selectedSet().id > 0 ? this.selectedSet().setname : '';
+            this.songForm.currentSetName(currentSetName);
+            this.songForm.includeInSet(currentSetName != '');
+            this.page('editsong');
         };
 
-        editSong = () => {
-            alert('edit song');
+        editSong = (song : ISongInfo) => {
+            let me = this;
+            me.songForm.id(song.id);
+            me.songForm.title(song.title);
+            me.songForm.errorMessage('');
+            this.songForm.currentSetName('');
+            this.songForm.includeInSet(false);
+            me.services.executeService('GetSongForEdit', song.id, (serviceResponse: IServiceResponse) => {
+                if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                    let response = <ISong>serviceResponse.Value;
+                    me.songForm.lyrics (response.lyrics);
+                    me.songForm.public(response.public != 0);
+                    me.songForm.user(response.user);
+                    me.songIndex = -1; // force lyrics refresh
+                    me.page('editsong');
+                }
+            })
+                .fail(() => {
+                    let trace = me.services.getErrorInformation();
+                    if (1){} // set breakpoint here
+                })
+                .always(() => {
+                });
+
+
         };
 
         signIn = () => {
@@ -445,7 +511,6 @@ namespace Peanut {
             this.setForm.setName('');
             this.setForm.user = this.username();
             this.initSetLists([]);
-            alert('new set');
         };
 
         editSet = (set: ISongSet) => {
@@ -609,6 +674,110 @@ namespace Peanut {
         cancelSetEdit = () => {
             this.page('songs');
         };
+
+        saveSong = () => {
+            let test = this.songForm.lyrics();
+            let me = this;
+
+            let request = <ISongUpdateRequest> {
+                id: me.songForm.id(),
+                user: me.songForm.user(),
+                title: me.songForm.title().trim(),
+                public: me.songForm.public() ? 1 : 0,
+                lyrics: me.songForm.lyrics().trim(),
+                setId: me.songForm.includeInSet() ? me.selectedSet().id : 0,
+            };
+            if (!request.title) {
+                me.songForm.errorMessage('Title is required');
+                return;
+            }
+            if (!request.lyrics) {
+                me.songForm.errorMessage('Add some lyrics please.');
+                return;
+            }
+            me.services.executeService('UpdateSong', request, (serviceResponse: IServiceResponse) => {
+                if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                    let response = <ISongUpdateResponse>serviceResponse.Value;
+                    let songIndex = _.findIndex(response.songs, {id: response.id});
+                    if (songIndex < 0) {
+                        songIndex = 0;
+                    }
+                    me.loadSongList(response.songs,songIndex);
+                    me.songIndex = -1;
+                }
+            })
+                .fail(() => {
+                    let trace = me.services.getErrorInformation();
+                    if (1){} // set breakpoint here
+                })
+                .always(() => {
+                    me.page('songs');
+                });
+        };
+
+        cancelSongEdit = () => {
+            this.page('songs');
+        };
+
+        deleteSet = () => {
+            jQuery("#confirm-delete-set-modal").modal('show');
+        };
+
+        doDeleteSet = () => {
+            let me = this;
+            jQuery("#confirm-delete-set-modal").modal('hide');
+            let setId = me.setForm.id();
+            me.services.executeService('RemoveSet', setId, (serviceResponse: IServiceResponse) => {
+                if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                    // let response = <ISongUpdateResponse>serviceResponse.Value;
+                    let invalidateSelected = me.selectedSet().id == setId;
+                    let setList = me.sets();
+                    _.remove(setList,(item: ISongSet) => {
+                        item.id == setId;
+                    });
+                    if (me.selectedSet().id == setId) {
+                        me.selectedSet(setList[0]);
+                    }
+                    me.sets(setList);
+                }
+            })
+                .fail(() => {
+                    let trace = me.services.getErrorInformation();
+                    if (1){} // set breakpoint here
+                })
+                .always(() => {
+                    me.page('songs');
+                });
+        };
+
+        deleteSong = () => {
+            jQuery("#confirm-delete-song-modal").modal('show');
+
+        };
+
+        doDeleteSong = () => {
+            let me = this;
+            jQuery("#confirm-delete-song-modal").modal('hide');
+            let songId = me.songForm.id();
+            me.services.executeService('RemoveSong', songId, (serviceResponse: IServiceResponse) => {
+                if (serviceResponse.Result == Peanut.serviceResultSuccess) {
+                    // let response = <ISongUpdateResponse>serviceResponse.Value;
+                    let songList = _.concat(me.songs[0](),me.songs[1](),me.songs[2](),me.songs[3]());
+                     _.remove(songList,(item: ISongInfo) => {
+                        return item.id == songId;
+                    });
+                    me.loadSongList(songList);
+                }
+            })
+                .fail(() => {
+                    let trace = me.services.getErrorInformation();
+                    if (1){} // set breakpoint here
+                })
+                .always(() => {
+                    me.page('songs');
+                });
+
+        }
     }
 
 }
