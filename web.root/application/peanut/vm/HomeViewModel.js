@@ -2,10 +2,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -55,8 +57,8 @@ var Peanut;
             _this.searchSubscription = null;
             _this.filterByUser = ko.observable(false);
             _this.credentials = {
-                username: ko.observable('Terry'),
-                password: ko.observable('De@dw00d'),
+                username: ko.observable(''),
+                password: ko.observable(''),
             };
             _this.signedIn = ko.observable(false);
             _this.username = ko.observable('');
@@ -270,15 +272,20 @@ var Peanut;
                     .always(function () {
                 });
             };
+            _this.signInTerry = function () {
+                _this.credentials.username('Terry');
+                _this.credentials.password('De@dw00d');
+                _this.signIn();
+            };
             _this.signIn = function () {
                 var me = _this;
-                var credentials = {
-                    username: _this.credentials.username().trim(),
-                    password: _this.credentials.password().trim()
+                var signinCredentials = {
+                    username: me.credentials.username().trim(),
+                    password: me.credentials.password().trim()
                 };
-                if (credentials.username && credentials.password) {
+                if (signinCredentials.username && signinCredentials.password) {
                     var request = null;
-                    me.services.executeService('SignIn', credentials, function (serviceResponse) {
+                    me.services.executeService('SignIn', signinCredentials, function (serviceResponse) {
                         if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                             var response = serviceResponse.Value;
                             if (response.registered === 'failed') {
@@ -288,7 +295,7 @@ var Peanut;
                                 jQuery("#signin-modal").modal('hide');
                                 if (response.registered !== 'no') {
                                     me.signedIn(true);
-                                    me.username(credentials.username);
+                                    me.username(signinCredentials.username);
                                     me.isAdmin(response.registered === 'admin');
                                     me.maxSongColumnItems = Math.floor(response.catalogSize / 4);
                                     if (response.sets) {
@@ -341,7 +348,7 @@ var Peanut;
             };
             _this.addToSetList = function (song) {
                 var me = _this;
-                me.setForm.selectedSongs.push(song);
+                me.insertSong(song);
                 _.remove(me.availableSongs, function (item) {
                     return item.id == song.id;
                 });
@@ -353,6 +360,10 @@ var Peanut;
             };
             _this.moveSongDown = function (song) {
                 _this.moveSong(song, 1);
+            };
+            _this.insertSong = function (song) {
+                var list = [song].concat(_this.setForm.selectedSongs());
+                _this.setForm.selectedSongs(list);
             };
             _this.moveSong = function (song, offset) {
                 var list = _this.setForm.selectedSongs();
@@ -561,15 +572,16 @@ var Peanut;
                 this.songs[i] = ko.observableArray();
             }
             me.application.loadResources([
-                '@lib:lodash'
+                '@lib:lodash',
+                '@pnut/ViewModelHelpers.js'
             ], function () {
                 me.application.registerComponents('@pnut/modal-confirm', function () {
-                    var request = null;
+                    var request = Peanut.Helper.getRequestParam('set');
                     me.services.executeService('GetSongs', request, function (serviceResponse) {
                         if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                             var response = serviceResponse.Value;
                             me.maxSongColumnItems = Math.floor(response.catalogSize / 4);
-                            me.username('quest');
+                            me.username('guest');
                             me.sets(response.sets);
                             me.selectedSet(response.set);
                             _this.loadSongList(response.songs);

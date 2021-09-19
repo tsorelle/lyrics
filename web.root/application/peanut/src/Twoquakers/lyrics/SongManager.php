@@ -62,8 +62,11 @@ class SongManager
     public function getVerses($id)
     {
         $song = $this->getRepository()->getSong($id);
-        if ((!$song) || empty($song->lyrics)) {
+        if (!$song) {
             return null;
+        }
+        if (empty($song->lyrics)) {
+            $song->lyrics = '';
         }
         $text = explode("\n",$song->lyrics);
 

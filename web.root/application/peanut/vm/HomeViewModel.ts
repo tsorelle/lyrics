@@ -130,18 +130,18 @@ namespace Peanut {
 
         verseColumn : any; //ko.observable('col-md-6');
 
-/*
         credentials = {
             username: ko.observable(''),
             password: ko.observable(''),
         };
-*/
 
+/*
         credentials = {
             // todo: clear test values
             username: ko.observable('Terry'),
-            password: ko.observable('De@dw00d'),
+            password: ko.observable('B@nj0B0y'),
         };
+*/
 
         signedIn = ko.observable(false);
         username = ko.observable('');
@@ -159,15 +159,17 @@ namespace Peanut {
             }
             me.application.loadResources([
                 // Load libraries and core components
-                '@lib:lodash'
+                '@lib:lodash',
+                '@pnut/ViewModelHelpers.js'
             ], () => {
                 me.application.registerComponents('@pnut/modal-confirm', () => {
-                    let request = null;
+                    // let request =  null; // Peanut.HttpRequestVars.Get('set');
+                    let request = Peanut.Helper.getRequestParam('set');
                     me.services.executeService('GetSongs', request, (serviceResponse: IServiceResponse) => {
                         if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                             let response = <IGetSongsResponse>serviceResponse.Value;
                             me.maxSongColumnItems = Math.floor(response.catalogSize / 4);
-                            me.username('quest');
+                            me.username('guest');
                             // me.isAdmin(!!response.isAdmin);
 
                             me.sets(response.sets);
@@ -429,18 +431,25 @@ namespace Peanut {
 
         };
 
+        signInTerry = () => {
+            this.credentials.username('Terry');
+            // this.credentials.password('B@nj0B0y')
+            this.credentials.password('De@dw00d')
+            this.signIn();
+        };
+
         signIn = () => {
             let me = this;
 
-            let credentials = {
-                username: this.credentials.username().trim(),
-                password: this.credentials.password().trim()
+            let signinCredentials = {
+                username: me.credentials.username().trim(),
+                password: me.credentials.password().trim()
             };
 
 
-            if (credentials.username && credentials.password) {
+            if (signinCredentials.username && signinCredentials.password) {
                 let request = null;
-                me.services.executeService( 'SignIn', credentials, (serviceResponse: IServiceResponse) => {
+                me.services.executeService( 'SignIn', signinCredentials, (serviceResponse: IServiceResponse) => {
                     if (serviceResponse.Result == Peanut.serviceResultSuccess) {
                         let response = <ISignInResponse>serviceResponse.Value;
                         if (response.registered === 'failed') {
@@ -450,7 +459,7 @@ namespace Peanut {
                             jQuery("#signin-modal").modal('hide');
                             if (response.registered !== 'no') {
                                 me.signedIn(true);
-                                me.username(credentials.username);
+                                me.username(signinCredentials.username);
                                 me.isAdmin(response.registered === 'admin');
                                 me.maxSongColumnItems = Math.floor(response.catalogSize / 4);
                                 if (response.sets) {
@@ -539,7 +548,8 @@ namespace Peanut {
 
         addToSetList = (song: ISongInfo) => {
             let me=this;
-            me.setForm.selectedSongs.push(song);
+            // me.setForm.selectedSongs.push(song);
+            me.insertSong(song);
             _.remove(me.availableSongs,(item: ISongInfo) => {
                 return item.id == song.id;
             });
@@ -554,6 +564,11 @@ namespace Peanut {
         moveSongDown = (song: ISongInfo) => {
             this.moveSong(song,1);
         };
+
+        insertSong = (song: ISongInfo) => {
+            let list = [song].concat(this.setForm.selectedSongs());
+            this.setForm.selectedSongs(list);
+        }
 
         moveSong = (song: ISongInfo, offset: number) => {
             let list = this.setForm.selectedSongs();

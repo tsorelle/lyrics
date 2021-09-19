@@ -43,4 +43,22 @@ class SongSet
         return $set;
     }
 
+    public static function GetDefaultSet() {
+        $set = new SongSet();
+        $set->id = 1;
+        $set->setname = 'Default';
+        $set->user = '';
+        return $set;
+    }
+
+
+    public static function CreateSongSet($request)
+    {
+        $set = new SongSet();
+        $set->id = -1;
+        $set->setname = '';
+        $set->user = '';
+        return $set;
+    }
+
 }

@@ -45,8 +45,11 @@ class GetSongsCommand extends TServiceCommand
         $mySongsSet = SongSet::GetMySongsSet();
         // $mySongsSet->id = $username;
         $allSongsSet = SongSet::GetAllSet();
+        // $requestedSet = SongSet::GetSongSet($request);
+        $defaultSet = SongSet::GetDefaultSet();
+
         $selectedSet = $allSongsSet;
-        $setList =  [$allSongsSet,$mySongsSet];
+        $setList =  [$allSongsSet,$mySongsSet,$defaultSet];
 
 /*        $setList =  $manager->getUserSets($username);
         if (count($setList)) {

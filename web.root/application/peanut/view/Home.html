@@ -2,9 +2,12 @@
 <div id="home-load-message"><span class="fa fa-spinner fa-pulse fa-2x" style="color:lightgrey"></span></div>
 <div id="home-view-container" style="display: none">
     <div class="row" data-bind="visible:page()=='lyrics'">
-        <div class="col-md-12 lyrics-menu">
+        <div class="col-md-12 d-none d-print-block">
+            <strong><span data-bind="text:title"></span></strong>
+        </div>
+        <div class="col-md-12 lyrics-menu d-print-none">
             <button title='Previous in set' data-bind="click:prevSong" class="btn default"><i class="fa fa-backward"></i></button>
-            <button class="btn menu-label"><span data-bind="text:title"></span></button>
+            <button class="btn menu-label" style="min-width: 20rem"><span data-bind="text:title"></span></button>
             <button title='Next in set' data-bind="click:nextSong" class="btn default"><i class="fa fa-forward"></i></button>
             <button title='Song list' style="padding-left:2em;padding-right: 2em" data-bind="click:showSongList" class="btn default"><i class="fa fa-music"></i></button>
             <button title='Split/Join Columns'  data-bind="click:splitColumns" class="btn default"><i class="fa fa-columns" aria-hidden="true"></i></button>
@@ -92,7 +95,9 @@
                     <ul class="linklist" data-bind="foreach:songs[0]()">
                         <li  data-bind="css:{linkhighlight: $root.selectedSong().id == id}">
                             <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:title"></span></a>
-                            <span data-bind="visible:$root.username() != user">(<span data-bind="text:user"></span>)</span>
+                            <span data-bind="visible:$root.username() != user">
+                               <!-- (<span data-bind="text:user"></span>) -->
+                            </span>
                             <span data-bind="visible:$root.isAdmin() || $root.username() == user">
                                 <a href="#" data-bind="click:$root.editSong"><i class="fa fa-pencil" aria-hidden="true"></i></a> </span>
                         </li>
@@ -102,7 +107,9 @@
                     <ul class="linklist" data-bind="foreach:songs[1]()">
                         <li  data-bind="css:{linkhighlight: $root.selectedSong().id == id}">
                             <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:title"></span></a>
-                            <span data-bind="visible:$root.username() != user">(<span data-bind="text:user"></span>)</span>
+                            <span data-bind="visible:$root.username() != user">
+                                <!-- (<span data-bind="text:user"></span>) -->
+                            </span>
                             <span data-bind="visible:$root.isAdmin() || $root.username() == user">
                                 <a href="#" data-bind="click:$root.editSong"><i class="fa fa-pencil" aria-hidden="true"></i></a> </span>
                         </li>
@@ -112,7 +119,9 @@
                     <ul class="linklist" data-bind="foreach:songs[2]()">
                         <li  data-bind="css:{linkhighlight: $root.selectedSong().id == id}">
                             <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:title"></span></a>
-                            <span data-bind="visible:$root.username() != user">(<span data-bind="text:user"></span>)</span>
+                            <span data-bind="visible:$root.username() != user">
+                                <!-- (<span data-bind="text:user"></span>) -->
+                            </span>
                             <span data-bind="visible:$root.isAdmin() || $root.username() == user">
                                 <a href="#" data-bind="click:$root.editSong"><i class="fa fa-pencil" aria-hidden="true"></i></a> </span>
                         </li>
@@ -123,7 +132,9 @@
                     <ul class="linklist" data-bind="foreach:songs[3]()">
                         <li  data-bind="css:{linkhighlight: $root.selectedSong().id == id}">
                             <a href="#" data-bind="click:$parent.selectSong"><span data-bind="text:title"></span></a>
-                            <span data-bind="visible:$root.username() != user">(<span data-bind="text:user"></span>)</span>
+                            <span data-bind="visible:$root.username() != user">
+                                <!-- (<span data-bind="text:user"></span>) -->
+                            </span>
                             <span data-bind="visible:$root.isAdmin() || $root.username() == user">
                                 <a href="#" data-bind="click:$root.editSong"><i class="fa fa-pencil" aria-hidden="true"></i></a> </span>
                         </li>
@@ -145,10 +156,8 @@
             </p>
 
             <p>
-                Right now, the application only displays my own song collection. If there is interest in a multi-user
-                version I'll support uploading and modifying your own sets and songs.  If you'd like this please register on my songs site.
-                Indicate in the "Interests and Instruments" section that you'd like to put your own songs on the "Lyric Sheets" application. I'll
-                let you know when it is released.
+                You can create and edit your own songs and sets too.  If you'd like this please register on my songs site.
+                Indicate in the "Interests and Instruments" section that you'd like to put your own songs on the "Lyric Sheets" application.
 
                 <a href ="https://terrys-songs.net/user/register" target="_blank">Register on "Terry's Songs"</a>
             </p>
@@ -258,7 +267,7 @@
         </form>
     </div> <!-- end song form -->
 
-
+    <div class="row" style="padding-top: 1rem"><div class="col-md-12">(<span data-bind="text:username"></span>)</div> </div>
 
     <div class="modal" id="signin-modal">
         <div class="modal-dialog">

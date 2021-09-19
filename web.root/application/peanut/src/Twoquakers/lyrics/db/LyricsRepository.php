@@ -43,6 +43,7 @@ class LyricsRepository
 
 
     public function getSongList($setId = 0,$authorized = true) {
+
         $params = [$setId];
         $sql = self::songListQuery;
         $where = '';
@@ -57,17 +58,19 @@ class LyricsRepository
             else {
                 $params = [];
             }
+            /*
             if (!$authorized) {
                 if ($where) {
                     $where .= ' AND ';
                 }
                 $where .= ' public = 1';
             }
+            */
         }
-        else {
+/*        else {
             // virtual set by username
             $where = 's.user = ?';
-        }
+        }*/
 
         if ($where) {
             $sql .= " WHERE $where ";
@@ -95,17 +98,19 @@ class LyricsRepository
     public function getSongSets($username) {
         $query = new TQuery();
         $baseSql = 'SELECT id, setname, user FROM lyrics_sets WHERE user = ?';
-        $sql = "$baseSql AND setname='default'";
+/*        $sql = "$baseSql AND setname='default'";
         $stmt = $this->makeStatement($sql,[$username],self::setClassName);
-        $default =  $stmt->fetch();
-        $sql = "$baseSql AND setname<>'default'";
+        $default =  $stmt->fetch();*/
+
+        $sql = "$baseSql AND setname <>'default'";
         $stmt = $this->makeStatement($sql." AND setname<>'default' ORDER BY setname",[$username],self::setClassName);
         $result =  $stmt->fetchAll();
-        if ($default) {
+/*        if ($default) {
             array_unshift($result,$default);
-        }
+        }*/
         return $result;
     }
+
 
     public function getDefaultSet($username='') {
         $sql = 'SELECT id, setname, user FROM lyrics_sets WHERE user = ?';
@@ -165,6 +170,7 @@ class LyricsRepository
 
     public function getSongCount(bool $authorized)
     {
+        $authorized = true;
         $sql = 'SELECT COUNT(*) FROM lyrics_songs ';
         if (!$authorized) {
           $sql .= 'WHERE public = 1';

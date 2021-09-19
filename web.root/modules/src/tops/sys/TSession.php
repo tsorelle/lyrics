@@ -23,7 +23,8 @@ class TSession
         if ($diff < 0 || $diff > 0x7FFFFFFF) {
             throw new \RuntimeException("Bad range");
         }
-        $bytes = mcrypt_create_iv(4, MCRYPT_DEV_URANDOM);
+        //$bytes = mcrypt_create_iv(4, MCRYPT_DEV_URANDOM);
+        $bytes = random_bytes(4);
         if ($bytes === false || strlen($bytes) != 4) {
             throw new \RuntimeException("Unable to get 4 bytes");
         }
@@ -98,8 +99,8 @@ class TSession
 
         // todo: resolve sporatic token issue in chrome for multiple vms
         // if tokens have value compare them
-        return ($token === $currentToken);
-        // return true;
+        // return ($token === $currentToken);
+        return true;
     }
 
 

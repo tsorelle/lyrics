@@ -196,7 +196,7 @@ namespace Peanut {
 
             // peanut controller requires parameter as a string.
             if (!parameters)
-                parameters = "";
+                   parameters = "";
             else  {
                 parameters = JSON.stringify(parameters);
             }

@@ -10,6 +10,7 @@ namespace Peanut\cms;
 
 
 use Tops\sys\TAbstractUser;
+use Tops\sys\TSession;
 use Tops\sys\TUser;
 use Tops\sys\TPermissionsManager;
 
@@ -85,9 +86,12 @@ class CmsUser extends TAbstractUser
     }
 
     private function getCurrentUserName() {
-        $config = $this->getConfig();
-        return  empty($config['settings']['current']) ? '' : $config['settings']['current'];
-
+        $current = $this->getCurrentUserCookie();
+        if (empty($current)) {
+            $config = $this->getConfig();
+            $current = empty($config['settings']['current']) ? '' : $config['settings']['current'];
+        }
+        return  $current;
     }
 
     /**
@@ -96,6 +100,9 @@ class CmsUser extends TAbstractUser
     public function loadCurrentUser()
     {
         $userName =  $this->getCurrentUserName();
+        if (empty($userName)) {
+            return false;
+        }
         $info = $this->getUserInfo($userName);
         $this->loadUserInfo($info);
         return (!empty($info));
@@ -192,7 +199,31 @@ class CmsUser extends TAbstractUser
 
     public function signIn($username, $password = null)
     {
-        // TODO: Implement signIn() method.
-        return true;
+        $password = md5($password);
+        $info = $this->getUserInfo($username);
+        if (!empty($info)) {
+            $hash = $info['hash'];
+            if ($password == $hash) {
+                $this->loadUserInfo($info);
+                // TSession::Set('current-cms-user', $username);
+                $this->setCurrentUserCookie($username);
+                return true;
+            }
+        }
+        return false;
     }
+
+    const userCookieKey = "twoquakerslyricsuser";
+
+    private function setCurrentUserCookie($username) {
+        setcookie(self::userCookieKey, $username, time() + (86400 * 30), "/"); // 86400 = 1 day
+    }
+
+    private function getCurrentUserCookie() {
+        if(!isset($_COOKIE[self::userCookieKey])) {
+            return null;
+        }
+        return $_COOKIE[self::userCookieKey];
+    }
+
 }
